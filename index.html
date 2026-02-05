@@ -5,50 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jonathon Peña | Portfolio</title>
   <meta name="description" content="Portfolio site for Jonathon Peña — projects, skills, and contact." />
-  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Cache-bust during rollout. You can remove ?v= later -->
+  <link rel="stylesheet" href="styles.css?v=8" />
 </head>
+
 <body>
   <header class="container">
-<nav class="nav">
-  <div class="logo">JP</div>
-  <div class="links">
-    <a href="#projects">Projects</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
+    <nav class="nav">
+      <div class="logo">JP</div>
 
-    <a class="btn" href="jonathon-resume.pdf" target="_blank" rel="noopener">
-      Resume
-    </a>
+      <div class="links">
+        <a href="#projects">Projects</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+
+        <a class="btn primary" href="jonathon-resume.pdf" target="_blank" rel="noopener">
+          Resume
+        </a>
+      </div>
+    </nav>
+
+   <section class="hero">
+  <div class="hero-panel glass">
+    <p class="kicker">Logistics • Data • Automation • Computer Science</p>
+
+    <h1>Hi, I’m <span class="accent">Jonathon</span>. I build clean systems.</h1>
+<p class="value">
+  Operations + data professional building dashboards and automation that reduce friction and improve visibility.
+</p>
+
+    <p class="sub">
+      I focus on operations, automation, and data-driven tools that reduce friction
+      and create visibility.
+    </p>
+
+    <div class="cta">
+      <a class="btn primary" href="jonathon-resume.pdf" target="_blank" rel="noopener">
+        Resume
+      </a>
+      <a class="btn ghost" href="#projects">View Projects</a>
+      <a class="btn ghost" href="#contact">Contact</a>
+    </div>
   </div>
-</nav>
+</section>
 
-
-    <section class="hero">
-      <p class="kicker">Logistics • Data • Automation • Computer Science</p>
-      <h1>Hi, I’m <span class="accent">Jonathon</span>. I build clean systems.</h1>
-      <p class="sub">
-        I focus on operations, automation, and data-driven tools that reduce friction
-        and create visibility.
-      </p>
-
-     <div class="cta">
-  <a class="btn primary" href="jonathon-resume.pdf" target="_blank" rel="noopener">
-    Resume
-  </a>
-  <a class="btn ghost" href="#projects">View Projects</a>
-  <a class="btn ghost" href="#contact">Contact</a>
-</div>
-
-    </section>
   </header>
 
   <main class="container">
     <section id="projects" class="section">
-      <h2>Projects</h2>
-      <p class="muted">Selected work and ongoing builds.</p>
+      <div class="section-head">
+        <h2>Projects</h2>
+        <p class="muted">Selected work and ongoing builds.</p>
+      </div>
 
       <div class="grid">
-        <article class="card">
+        <article class="card glass">
           <h3>Sales & Operations Dashboard</h3>
           <p>Power BI reporting for quote tracking, follow-ups, and handoffs.</p>
           <div class="tags">
@@ -56,7 +68,7 @@
           </div>
         </article>
 
-        <article class="card">
+        <article class="card glass">
           <h3>Automation Templates</h3>
           <p>Reusable intake → approval → delivery workflows.</p>
           <div class="tags">
@@ -64,7 +76,7 @@
           </div>
         </article>
 
-        <article class="card">
+        <article class="card glass">
           <h3>Portfolio Website</h3>
           <p>This site, built clean and simple for performance.</p>
           <div class="tags">
@@ -75,22 +87,27 @@
     </section>
 
     <section id="about" class="section">
-      <h2>About</h2>
-      <p>
-        I’m a logistics and operations professional and computer science student
-        focused on building practical systems that scale.
-      </p>
+      <div class="glass card">
+        <h2>About</h2>
+        <p class="muted">
+          I’m a logistics and operations professional and computer science student
+          focused on building practical systems that scale.
+        </p>
+      </div>
     </section>
 
     <section id="contact" class="section">
-      <h2>Contact</h2>
-      <div class="contact">
-        <a class="btn primary" href="mailto:yourname@email.com">Email Me</a>
-        <a class="btn ghost" href="https://github.com/JRPENA99" target="_blank">GitHub</a>
-        <a class="btn ghost" href="#" target="_blank">LinkedIn</a>
-      </div>
+      <div class="glass card">
+        <h2>Contact</h2>
 
-      <p class="tiny muted">© <span id="year"></span> Jonathon Peña</p>
+        <div class="contact">
+          <a class="btn primary" href="mailto:yourname@email.com">Email Me</a>
+          <a class="btn ghost" href="https://github.com/JRPENA99" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn ghost" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+
+        <p class="tiny muted">© <span id="year"></span> Jonathon Peña</p>
+      </div>
     </section>
   </main>
 

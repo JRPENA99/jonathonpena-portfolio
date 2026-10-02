@@ -1,0 +1,23 @@
+---
+import '../../styles/demo.css';
+
+interface Props {
+  title: string;
+  /** Shown in the label, e.g. "Sample data" or "Concept". */
+  kind?: string;
+  note?: string;
+}
+const { title, kind = 'Demo · Sample data', note = 'All companies, people and figures are invented for illustration.' } = Astro.props;
+---
+
+<figure class="demo-frame" data-reveal>
+  <div class="demo-chrome">
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="demo-title">{title}</span>
+    <span class="demo-flag">{kind}</span>
+  </div>
+  <div class="demo-body">
+    <slot />
+  </div>
+  <figcaption class="demo-note">{note}</figcaption>
+</figure>

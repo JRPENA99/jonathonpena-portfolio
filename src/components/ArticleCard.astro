@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, readingTime } from '../lib/content';
+
+interface Props { article: CollectionEntry<'writing'> }
+const { article } = Astro.props;
+const d = article.data;
+---
+
+<article class="card article" data-reveal>
+  <p class="meta mono">
+    <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+    <span aria-hidden="true">·</span>
+    <span>{readingTime(article.body)} min read</span>
+  </p>
+  <h3><a class="card-link" href={`/writing/${article.id}/`}>{d.title}</a></h3>
+  <p class="muted">{d.summary}</p>
+  <ul class="tags">{d.topics.map((t) => <li class="tag">{t}</li>)}</ul>
+</article>
+
+<style>
+  .article { padding: 24px; display: flex; flex-direction: column; gap: 12px; height: 100%; }
+  .meta { font-size: 0.72rem; color: var(--text-3); display: flex; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+  h3 { font-size: 1.22rem; }
+  .muted { font-size: 0.95rem; }
+  .tags { margin-top: auto; padding-top: 6px; }
+</style>

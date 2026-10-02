@@ -1,0 +1,105 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import ContactCTA from '../components/ContactCTA.astro';
+import { site } from '../data/site';
+import portrait from '../assets/jonathon.png';
+
+const interests = ['Building products', 'Automation', 'Systems', 'Business', 'Technology', 'Good coffee'];
+---
+
+<Base title="About" description="About Jonathon Pena: a Houston-based builder working across software, automation, data, operations and web products." ogType="profile">
+  <section class="wrap about">
+    <div class="portrait" data-reveal>
+      <Image src={portrait} alt="Jonathon Pena" widths={[280, 420, 560, 840]} sizes="(max-width: 760px) 220px, 380px" loading="eager" fetchpriority="high" />
+    </div>
+    <div class="copy">
+      <p class="eyebrow">About</p>
+      <h1>I'm Jonathon.</h1>
+      <div class="prose">
+        <p class="big">
+          I like understanding how things work, especially when a process is messy, repetitive, or harder than it needs to be.
+        </p>
+        <p>
+          A lot of my background is in operations: running projects in the field, coordinating crews and subcontractors,
+          building inventory and tracking systems, writing the documentation, and figuring out why a system failed when it
+          mattered. That work taught me to look at the whole system before looking at any single task. Most problems live in
+          the handoffs.
+        </p>
+        <p>
+          That way of thinking pulled me toward software. A tracking spreadsheet becomes a dashboard. A repetitive process
+          becomes a script. A research routine becomes a product idea.
+        </p>
+        <p>
+          I learn mostly by building. When I hit something I don't know how to do, my instinct is to research it, prototype
+          something, break it, fix it, and understand the system better afterward. The <a href="/build/">Build Log</a> is
+          where that process shows up.
+        </p>
+        <p>
+          Right now I'm building across automation, sales technology, web development, content systems and business software,
+          including a website for <a href="/projects/woodfox-roasters/">Woodfox Roasters</a>, a small coffee roaster I care
+          about more than is probably reasonable.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap cols">
+      <div data-reveal>
+        <p class="eyebrow">How I work</p>
+        <ol class="how">
+          <li><strong>Understand the problem.</strong> Who has it, and what does it cost them?</li>
+          <li><strong>Understand the process.</strong> How does the work actually happen today?</li>
+          <li><strong>Find the friction.</strong> Usually a handoff, a duplicate step, or missing information.</li>
+          <li><strong>Design the system</strong> before writing code.</li>
+          <li><strong>Prototype, test, improve.</strong> Small, real, then better.</li>
+        </ol>
+      </div>
+      <div data-reveal>
+        <p class="eyebrow">What I bring</p>
+        <ul class="bring">
+          <li>Operations and project execution</li>
+          <li>Workflow and process design</li>
+          <li>Inventory, tracking and Excel-based systems</li>
+          <li>CRM systems and customer data</li>
+          <li>Requirements gathering and documentation</li>
+          <li>Root-cause troubleshooting</li>
+          <li>Python, web development and automation</li>
+        </ul>
+        <p class="eyebrow mt">Outside the editor</p>
+        <ul class="tags">{interests.map((i) => <li class="tag">{i}</li>)}</ul>
+        <p class="loc muted">Based in {site.location}.</p>
+      </div>
+    </div>
+  </section>
+
+  <ContactCTA />
+</Base>
+
+<style>
+  .about {
+    display: grid; grid-template-columns: minmax(220px, 380px) minmax(0, 1fr); gap: clamp(32px, 6vw, 88px);
+    align-items: start; padding-block: clamp(48px, 8vw, 104px);
+  }
+  .portrait { position: sticky; top: 104px; }
+  .portrait :global(img) { width: 100%; height: auto; border-radius: 50%; }
+  h1 { margin-bottom: 28px; }
+  .big { font-size: clamp(1.25rem, 2.2vw, 1.5rem); color: var(--text); line-height: 1.45; letter-spacing: -0.01em; }
+  .copy .prose { max-width: 62ch; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); }
+  .how { margin: 0; padding: 0; list-style: none; counter-reset: h; display: grid; gap: 16px; }
+  .how li { counter-increment: h; display: grid; grid-template-columns: 28px 1fr; color: var(--text-2); }
+  .how li::before { content: counter(h, decimal-leading-zero); font: 0.72rem var(--font-mono); color: var(--accent); padding-top: 5px; }
+  .how strong { color: var(--text); font-weight: 600; }
+  .bring { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .bring li { padding: 10px 0; border-bottom: 1px solid var(--border); color: var(--text-2); }
+  .mt { margin-top: 36px; }
+  .loc { margin-top: 20px; font-size: 0.9rem; }
+
+  @media (max-width: 760px) {
+    .about { grid-template-columns: 1fr; }
+    .portrait { position: static; width: min(220px, 60vw); }
+    .cols { grid-template-columns: 1fr; }
+  }
+</style>

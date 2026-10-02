@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getWriting } from '../../lib/content';
+
+const posts = await getWriting();
+---
+
+<Base title="Writing" description="Writing by Jonathon Pena on software, automation, operations, AI-assisted development, sales technology and building useful systems.">
+  <PageHeader eyebrow="Writing" title="What I've learned, and what I think about it" lede="The Build Log is what I did. This is what I took away from it: software, automation, operations, and the business problems underneath." />
+  <section class="wrap pb">
+    <div class="grid grid-3">{posts.map((a) => <ArticleCard article={a} />)}</div>
+  </section>
+</Base>
+
+<style>
+  .pb { padding-bottom: clamp(64px, 9vw, 112px); }
+</style>

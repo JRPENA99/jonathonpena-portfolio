@@ -1,0 +1,67 @@
+---
+/**
+ * A simple, responsive workflow diagram: horizontal on wide screens, vertical on phones.
+ * Pass plain strings, or "Label | detail" to add a small caption under a step.
+ */
+interface Props {
+  steps: string[];
+  title?: string;
+  /** Index of the step currently being worked on (gets the accent). */
+  active?: number;
+}
+const { steps, title, active } = Astro.props;
+const parsed = steps.map((s) => {
+  const [label, detail] = s.split('|').map((x) => x.trim());
+  return { label, detail };
+});
+---
+
+<figure class="flow" data-reveal>
+  {title && <figcaption class="eyebrow">{title}</figcaption>}
+  <ol style={`--n:${parsed.length}`}>
+    {parsed.map((s, i) => (
+      <li class:list={{ active: i === active }} style={`--i:${i}`}>
+        <span class="num mono">{String(i + 1).padStart(2, '0')}</span>
+        <span class="label">{s.label}</span>
+        {s.detail && <span class="detail">{s.detail}</span>}
+      </li>
+    ))}
+  </ol>
+</figure>
+
+<style>
+  .flow { margin: 0; }
+  ol {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 28px;
+  }
+  li {
+    position: relative; display: flex; flex-direction: column; gap: 6px;
+    padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+    min-width: 0;
+  }
+  li.active { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface); }
+  li:not(:last-child)::after {
+    content: ''; position: absolute; top: 50%; left: 100%; width: 28px; height: 1px;
+    background: linear-gradient(90deg, var(--border-strong) 50%, transparent 50%) 0 0 / 6px 1px;
+    animation: flow 1.2s linear infinite;
+  }
+  .num { font-size: 0.68rem; color: var(--text-3); }
+  .active .num { color: var(--accent); }
+  .label { font-weight: 600; font-size: 0.95rem; overflow-wrap: anywhere; }
+  .detail { font-size: 0.8rem; color: var(--text-2); line-height: 1.45; }
+
+  @keyframes flow { to { background-position: 6px 0; } }
+
+  @media (max-width: 860px) {
+    ol { grid-template-columns: 1fr; gap: 18px; }
+    li { flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 12px; }
+    .detail { flex-basis: 100%; padding-left: 28px; }
+    li:not(:last-child)::after {
+      top: 100%; left: 26px; width: 1px; height: 18px;
+      background: linear-gradient(180deg, var(--border-strong) 50%, transparent 50%) 0 0 / 1px 6px;
+      animation-name: flow-v;
+    }
+  }
+  @keyframes flow-v { to { background-position: 0 6px; } }
+</style>

@@ -1,0 +1,58 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ContactCTA from '../../components/ContactCTA.astro';
+import { getWriting, formatDate, readingTime } from '../../lib/content';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  const posts = await getWriting();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post, others: posts.filter((p) => p.id !== post.id).slice(0, 2) } }));
+}
+
+const { post, others } = Astro.props;
+const d = post.data;
+const { Content } = await render(post);
+const schema = [{
+  '@context': 'https://schema.org', '@type': 'Article', headline: d.title, description: d.summary,
+  datePublished: d.date.toISOString(), author: { '@type': 'Person', name: site.name, url: site.url },
+  keywords: d.topics.join(', '), url: new URL(`/writing/${post.id}/`, site.url).href,
+}];
+---
+
+<Base title={d.title} description={d.summary} ogType="article" publishedTime={d.date} schema={schema}>
+  <article class="wrap wrap-narrow post">
+    <a class="text-link back" href="/writing/">← Writing</a>
+    <p class="meta mono">
+      <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time> · {readingTime(post.body)} min read
+    </p>
+    <h1>{d.title}</h1>
+    <p class="lede">{d.summary}</p>
+    <ul class="tags">{d.topics.map((t) => <li class="tag">{t}</li>)}</ul>
+    <div class="prose"><Content /></div>
+    <footer class="by">
+      <p>Written by <a href="/about/">{site.name}</a>. Thoughts or disagreements: <a href={`mailto:${site.email}`}>{site.email}</a></p>
+    </footer>
+    {others.length > 0 && (
+      <nav class="more" aria-label="More writing">
+        <p class="eyebrow">More writing</p>
+        <ul>{others.map((o) => <li><a href={`/writing/${o.id}/`}>{o.data.title} →</a></li>)}</ul>
+      </nav>
+    )}
+  </article>
+  <ContactCTA />
+</Base>
+
+<style>
+  .post { padding-block: clamp(36px, 6vw, 72px) clamp(56px, 8vw, 96px); }
+  .back { color: var(--text-2); margin-bottom: 32px; }
+  .meta { font-size: 0.75rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px; }
+  h1 { font-size: clamp(2rem, 4.6vw, 3.1rem); }
+  .lede { margin: 18px 0 22px; }
+  .tags { margin-bottom: 44px; }
+  .by { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--border); font-size: 0.92rem; color: var(--text-2); }
+  .more { margin-top: 40px; }
+  .more ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .more a { text-decoration: none; font-weight: 500; }
+  .more a:hover { color: var(--accent); }
+</style>

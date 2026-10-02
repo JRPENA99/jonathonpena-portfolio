@@ -1,0 +1,30 @@
+---
+import { site } from '../data/site';
+---
+
+<section class="section cta-section">
+  <div class="wrap cta" data-reveal>
+    <div>
+      <p class="eyebrow">Build something</p>
+      <h2>Have something you want to build?</h2>
+      <p class="lede">
+        An idea, a messy workflow, a site that should work better. If it's a real problem, I'd like to hear about it.
+      </p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-primary" href="/contact/">Start a conversation <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="btn" href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: end;
+  }
+  h2 { max-width: 16ch; }
+  .lede { margin-top: 16px; }
+  .actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .actions .btn:last-child { font-family: var(--font-mono); font-size: 0.85rem; }
+  @media (max-width: 760px) { .cta { grid-template-columns: 1fr; } }
+</style>

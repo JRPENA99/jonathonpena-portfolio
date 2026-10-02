@@ -1,0 +1,105 @@
+---
+/**
+ * Architecture view of the Content Engine. Node states are honest:
+ * working = runs in the current prototype, next = being built now, planned = not started.
+ */
+const inputs = [
+  { k: 'visuals', label: 'Visual assets', detail: 'loopable scene footage', state: 'working' },
+  { k: 'audio', label: 'Audio assets', detail: 'rain · fire · music', state: 'next' },
+  { k: 'config', label: 'Project config', detail: 'scene, duration, output', state: 'working' },
+];
+const core = [
+  { label: 'Python orchestration', detail: 'reads config, resolves assets, builds the job', state: 'working' },
+  { label: 'FFmpeg processing', detail: 'loop, encode, mux', state: 'working' },
+  { label: 'Rendered output', detail: 'long-form video file', state: 'working' },
+];
+const stateLabel: Record<string, string> = { working: 'Working', next: 'Next', planned: 'Planned' };
+---
+
+<figure class="cp" data-reveal>
+  <div class="cp-head">
+    <p class="eyebrow">Architecture · current prototype</p>
+    <ul class="legend" aria-label="Legend">
+      <li><span class="sw working"></span>Working</li>
+      <li><span class="sw next"></span>In progress</li>
+    </ul>
+  </div>
+
+  <div class="diagram">
+    <ul class="inputs" aria-label="Inputs">
+      {inputs.map((n) => (
+        <li class:list={['node', n.state]}>
+          <span class="nl">{n.label}</span>
+          <span class="nd">{n.detail}</span>
+          <span class="ns mono">{stateLabel[n.state]}</span>
+        </li>
+      ))}
+    </ul>
+
+    <svg class="join" viewBox="0 0 80 300" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 50 C 40 50, 40 150, 80 150" />
+      <path d="M0 150 L 80 150" class="dash-next" />
+      <path d="M0 250 C 40 250, 40 150, 80 150" />
+    </svg>
+
+    <ol class="core" aria-label="Pipeline">
+      {core.map((n, i) => (
+        <li class:list={['node', n.state, { out: i === core.length - 1 }]}>
+          <span class="nl">{n.label}</span>
+          <span class="nd">{n.detail}</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <figcaption class="cap">
+    Audio layering is the current focus. The video side renders end to end; separate rain, fire and music layers are being wired into the config next.
+  </figcaption>
+</figure>
+
+<style>
+  .cp { margin: 0; border: 1px solid var(--border-strong); border-radius: 16px; background: var(--bg-elev); padding: clamp(18px, 3vw, 30px); }
+  .cp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .cp-head .eyebrow { margin: 0; }
+  .legend { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; font-size: 0.78rem; color: var(--text-2); }
+  .legend li { display: flex; align-items: center; gap: 6px; }
+  .sw { width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid var(--st-live); }
+  .sw.next { border-color: var(--st-building); border-style: dashed; }
+
+  .diagram { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 2.2fr); align-items: center; }
+  .inputs { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+  .node {
+    position: relative; display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border-strong);
+  }
+  .node.working { box-shadow: inset 3px 0 0 var(--st-live); }
+  .node.next { border-style: dashed; border-color: var(--st-building); box-shadow: inset 3px 0 0 var(--st-building); }
+  .nl { font-weight: 600; font-size: 0.92rem; }
+  .nd { font-size: 0.78rem; color: var(--text-2); }
+  .ns { position: absolute; top: 10px; right: 12px; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .next .ns { color: var(--st-building); }
+
+  .join { width: 100%; height: 100%; min-height: 220px; }
+  .join path { fill: none; stroke: var(--border-strong); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-dasharray: 4 4; animation: dash 1s linear infinite; }
+  .join .dash-next { stroke: var(--st-building); }
+
+  .core { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
+  .core .node:not(:last-child)::after {
+    content: ''; position: absolute; left: 100%; top: 50%; width: 26px; height: 1.5px;
+    background: linear-gradient(90deg, var(--st-live) 50%, transparent 50%) 0 0 / 8px 1.5px; animation: flowx 0.8s linear infinite;
+  }
+  .core .out { background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface); border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+  .cap { margin-top: 22px; font-size: 0.88rem; color: var(--text-2); max-width: 70ch; }
+
+  @keyframes dash { to { stroke-dashoffset: -8; } }
+  @keyframes flowx { to { background-position: 8px 0; } }
+
+  @media (max-width: 820px) {
+    .diagram { grid-template-columns: 1fr; gap: 0; }
+    .join { display: none; }
+    .inputs { grid-template-columns: 1fr; gap: 8px; padding-bottom: 28px; position: relative; }
+    .inputs::after { content: '↓'; position: absolute; bottom: 2px; left: 50%; color: var(--text-3); }
+    .core { grid-template-columns: 1fr; gap: 22px; }
+    .core .node:not(:last-child)::after { left: 24px; top: 100%; width: 1.5px; height: 22px; background: linear-gradient(180deg, var(--st-live) 50%, transparent 50%) 0 0 / 1.5px 8px; animation: none; }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+import { site, nav } from '../data/site';
+---
+
+<footer class="site-footer">
+  <div class="wrap inner">
+    <div class="id">
+      <p class="name">{site.name}</p>
+      <p class="muted">{site.tagline}</p>
+      <a class="email" href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+    <nav aria-label="Footer">
+      <ul>
+        {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+      <ul>
+        <li><a href={site.github} rel="me noopener" target="_blank">GitHub</a></li>
+        <li><a href={site.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+        <li><a href={`mailto:${site.email}`}>Email</a></li>
+        <li><a href="/rss.xml">RSS</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="wrap legal">
+    <span>© <span data-year>{new Date().getFullYear()}</span> {site.name}</span>
+    <span class="mono">{site.location}</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--border); background: var(--bg-sunk); margin-top: 0; }
+  .inner { display: flex; justify-content: space-between; gap: 40px; padding-block: 56px 36px; flex-wrap: wrap; }
+  .name { font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
+  .email { display: inline-block; margin-top: 14px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-2); }
+  nav { display: flex; gap: 56px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  ul a { color: var(--text-2); text-decoration: none; font-size: 0.92rem; }
+  ul a:hover { color: var(--text); }
+  .legal {
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding-block: 20px 28px; border-top: 1px solid var(--border);
+    font-size: 0.8rem; color: var(--text-3);
+  }
+  @media (max-width: 560px) { nav { gap: 36px; } }
+</style>

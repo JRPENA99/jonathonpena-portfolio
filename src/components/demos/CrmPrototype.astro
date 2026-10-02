@@ -1,0 +1,201 @@
+---
+import DemoFrame from './DemoFrame.astro';
+---
+
+<DemoFrame title="crm / workspace" kind="Concept prototype · Sample data" note="Front-end concept only. Nothing is saved, and changes reset on reload. Accounts, contacts and values are invented.">
+  <div class="crm" data-crm>
+    <nav class="side" aria-label="CRM sections">
+      <p class="ws mono">Workspace</p>
+      <button type="button" data-view="dashboard" aria-pressed="false">Dashboard</button>
+      <button type="button" data-view="pipeline" aria-pressed="true">Pipeline</button>
+      <button type="button" data-view="accounts" aria-pressed="false">Accounts</button>
+      <button type="button" data-view="tasks" aria-pressed="false">Tasks <span class="badge" data-taskcount></span></button>
+      <p class="ws mono soon">Planned</p>
+      <span class="planned">Research</span>
+      <span class="planned">Outreach</span>
+    </nav>
+    <div class="main" data-main aria-live="polite"></div>
+    <aside class="drawer" data-drawer hidden aria-label="Account detail"></aside>
+  </div>
+</DemoFrame>
+
+<script>
+  import { deals as seed, stages, tasks as seedTasks, activity, type Deal } from '../../data/demo';
+  import { usd } from '../../scripts/charts';
+
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  document.querySelectorAll<HTMLElement>('[data-crm]').forEach((root) => {
+    const deals: Deal[] = seed.map((d) => ({ ...d }));
+    const tasks = seedTasks.map((t) => ({ ...t }));
+    const notes: Record<string, string[]> = { d1: ['Wants pricing split by lane. Decision by end of month.'], d3: ['Legal reviewing standard terms.'] };
+    let view = 'pipeline';
+    let openId: string | null = null;
+
+    const main = root.querySelector<HTMLElement>('[data-main]')!;
+    const drawer = root.querySelector<HTMLElement>('[data-drawer]')!;
+    const header = (title: string, sub: string) => `<div class="mh"><div><p class="d-sub">${sub}</p><h3>${title}</h3></div></div>`;
+
+    const views: Record<string, () => string> = {
+      dashboard: () => {
+        const open = deals.filter((d) => d.stage !== 'Won');
+        return `${header('Good morning', 'Dashboard')}
+          <dl class="d-kpis">
+            <div class="d-kpi"><dt>Open pipeline</dt><dd>${usd(open.reduce((s, d) => s + d.value, 0))}</dd></div>
+            <div class="d-kpi"><dt>Due today</dt><dd>${tasks.filter((t) => !t.done && t.due === 'Today').length}</dd></div>
+            <div class="d-kpi"><dt>In negotiation</dt><dd>${deals.filter((d) => d.stage === 'Negotiation').length}</dd></div>
+          </dl>
+          <div class="cols2">
+            <section class="d-panel"><h4>Next up</h4><ul class="d-list">${tasks.filter((t) => !t.done).slice(0, 4).map((t) => `<li><span>${esc(t.title)}</span><span class="d-sub">${t.due}</span></li>`).join('')}</ul></section>
+            <section class="d-panel"><h4>Activity</h4><ul class="d-list">${activity.slice(0, 4).map((a) => `<li><span>${a.what}<br><span class="d-sub">${a.who}</span></span><span class="d-sub">${a.when}</span></li>`).join('')}</ul></section>
+          </div>`;
+      },
+      pipeline: () =>
+        `${header('Pipeline', `${deals.length} deals · move cards with the arrows`)}
+        <div class="board">${stages
+          .map((s, si) => {
+            const items = deals.filter((d) => d.stage === s);
+            return `<section class="col" aria-label="${s}"><div class="ch"><span>${s}</span><span class="d-sub">${usd(items.reduce((a, d) => a + d.value, 0))}</span></div>
+              ${items
+                .map(
+                  (d) => `<article class="deal${openId === d.id ? ' on' : ''}">
+                    <button type="button" class="open" data-open="${d.id}">${esc(d.account)}</button>
+                    <p class="d-sub">${esc(d.contact)} · ${d.industry}</p>
+                    <div class="dr"><strong>${usd(d.value)}</strong>
+                      <span class="mv">
+                        <button type="button" data-move="${d.id}" data-dir="-1" aria-label="Move ${esc(d.account)} back" ${si === 0 ? 'disabled' : ''}>‹</button>
+                        <button type="button" data-move="${d.id}" data-dir="1" aria-label="Move ${esc(d.account)} forward" ${si === stages.length - 1 ? 'disabled' : ''}>›</button>
+                      </span></div>
+                  </article>`,
+                )
+                .join('')}</section>`;
+          })
+          .join('')}</div>`,
+      accounts: () =>
+        `${header('Accounts', `${deals.length} companies`)}
+        <div class="d-table-wrap"><table class="d-table"><thead><tr><th scope="col">Account</th><th scope="col">Industry</th><th scope="col">Stage</th><th scope="col">Next step</th><th scope="col" class="d-num">Value</th></tr></thead>
+        <tbody>${deals.map((d) => `<tr tabindex="0" data-open="${d.id}"><td><strong>${esc(d.account)}</strong><br><span class="d-sub">${esc(d.contact)}</span></td><td>${d.industry}</td><td>${d.stage}</td><td>${esc(d.next)}</td><td class="d-num">${usd(d.value)}</td></tr>`).join('')}</tbody></table></div>`,
+      tasks: () =>
+        `${header('Tasks', `${tasks.filter((t) => !t.done).length} open`)}
+        <ul class="tasks">${tasks
+          .map((t) => `<li><label><input type="checkbox" data-task="${t.id}" ${t.done ? 'checked' : ''}/> <span class="${t.done ? 'done' : ''}">${esc(t.title)}</span></label><span class="d-sub">${esc(t.account)} · ${t.due}</span></li>`)
+          .join('')}</ul>`,
+    };
+
+    const renderDrawer = () => {
+      const d = deals.find((x) => x.id === openId);
+      drawer.hidden = !d;
+      if (!d) return;
+      const n = notes[d.id] ?? [];
+      drawer.innerHTML = `<div class="dh"><p class="d-sub">${d.industry}</p><button type="button" class="x" data-close aria-label="Close detail">×</button></div>
+        <h3>${esc(d.account)}</h3>
+        <dl class="facts"><div><dt>Contact</dt><dd>${esc(d.contact)}</dd></div><div><dt>Stage</dt><dd>${d.stage}</dd></div><div><dt>Value</dt><dd>${usd(d.value)}</dd></div><div><dt>Next</dt><dd>${esc(d.next)} · ${d.due}</dd></div></dl>
+        <h4>Notes</h4>
+        <ul class="d-list">${n.map((x) => `<li><span>${esc(x)}</span></li>`).join('') || '<li><span class="d-sub">No notes yet.</span></li>'}</ul>
+        <form data-note><label class="sr-only" for="crm-note">Add a note</label><input id="crm-note" class="d-input" name="note" placeholder="Add a note…" autocomplete="off" /><button class="btn" type="submit">Add</button></form>`;
+    };
+
+    const render = () => {
+      main.innerHTML = views[view]();
+      root.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.view === view)));
+      root.querySelector('[data-taskcount]')!.textContent = String(tasks.filter((t) => !t.done).length);
+      renderDrawer();
+    };
+
+    root.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const v = t.closest<HTMLElement>('[data-view]');
+      if (v) { view = v.dataset.view!; render(); return; }
+      const m = t.closest<HTMLElement>('[data-move]');
+      if (m) {
+        const d = deals.find((x) => x.id === m.dataset.move)!;
+        const i = stages.indexOf(d.stage) + Number(m.dataset.dir);
+        if (stages[i]) d.stage = stages[i];
+        render();
+        root.querySelector<HTMLElement>(`[data-move="${d.id}"][data-dir="${m.dataset.dir}"]:not([disabled])`)?.focus();
+        return;
+      }
+      const o = t.closest<HTMLElement>('[data-open]');
+      if (o) { openId = o.dataset.open!; render(); drawer.querySelector<HTMLElement>('[data-close]')?.focus(); return; }
+      if (t.closest('[data-close]')) { const last = openId; openId = null; render(); root.querySelector<HTMLElement>(`[data-open="${last}"]`)?.focus(); }
+    });
+    root.addEventListener('keydown', (e) => {
+      const tr = (e.target as HTMLElement).closest<HTMLElement>('tr[data-open]');
+      if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tr.click(); }
+      if (e.key === 'Escape' && openId) { openId = null; render(); }
+    });
+    root.addEventListener('change', (e) => {
+      const cb = (e.target as HTMLElement).closest<HTMLInputElement>('[data-task]');
+      if (cb) { tasks.find((t) => t.id === cb.dataset.task)!.done = cb.checked; render(); root.querySelector<HTMLElement>(`[data-task="${cb.dataset.task}"]`)?.focus(); }
+    });
+    root.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const val = (new FormData(f).get('note') as string).trim();
+      if (val && openId) { (notes[openId] ??= []).push(val); render(); drawer.querySelector<HTMLInputElement>('input')?.focus(); }
+    });
+    render();
+  });
+</script>
+
+<style>
+  .crm { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 16px; min-height: 460px; }
+  .side { display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); padding-right: 14px; }
+  .ws { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin: 0 0 6px 8px; }
+  .ws.soon { margin-top: 18px; }
+  .side button {
+    all: unset; cursor: pointer; padding: 8px; border-radius: 7px; font-size: 0.86rem; color: var(--text-2);
+    display: flex; justify-content: space-between;
+  }
+  .side button:hover { color: var(--text); background: var(--surface-2); }
+  .side button:focus-visible { outline: 2px solid var(--accent); }
+  .side button[aria-pressed='true'] { color: var(--text); background: var(--surface-2); box-shadow: inset 2px 0 0 var(--accent); }
+  .badge { font: 0.7rem var(--font-mono); color: var(--text-3); }
+  .planned { padding: 6px 8px; font-size: 0.82rem; color: var(--text-3); }
+
+  .main { min-width: 0; display: grid; gap: 14px; align-content: start; }
+  .main :global(.mh h3) { font-size: 1.1rem; }
+  .main :global(.cols2) { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .main :global(.board) { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+  .main :global(.col) { background: var(--bg-sunk); border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: grid; gap: 8px; align-content: start; min-height: 260px; }
+  .main :global(.ch) { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; padding: 2px 4px; }
+  .main :global(.deal) { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: grid; gap: 4px; font-size: 0.8rem; transition: border-color 0.15s; }
+  .main :global(.deal.on) { border-color: var(--accent); }
+  .main :global(.deal .open) { all: unset; cursor: pointer; font-weight: 600; font-size: 0.84rem; }
+  .main :global(.deal .open:hover) { color: var(--accent); }
+  .main :global(.deal .open:focus-visible), .main :global(.mv button:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .main :global(.dr) { display: flex; justify-content: space-between; align-items: center; }
+  .main :global(.mv) { display: flex; gap: 2px; }
+  .main :global(.mv button) { all: unset; cursor: pointer; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 5px; border: 1px solid var(--border); color: var(--text-2); }
+  .main :global(.mv button:hover:not([disabled])) { color: var(--text); border-color: var(--border-strong); }
+  .main :global(.mv button[disabled]) { opacity: 0.3; cursor: default; }
+  .main :global(.d-table) { min-width: 560px; }
+  .main :global(.tasks) { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .main :global(.tasks li) { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 0.86rem; }
+  .main :global(.tasks label) { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+  .main :global(.tasks input) { accent-color: var(--accent); width: 16px; height: 16px; }
+  .main :global(.done) { text-decoration: line-through; color: var(--text-3); }
+
+  .drawer { width: 260px; border-left: 1px solid var(--border); padding-left: 16px; display: grid; gap: 10px; align-content: start; font-size: 0.85rem; }
+  .drawer[hidden] { display: none; }
+  .drawer :global(.dh) { display: flex; justify-content: space-between; align-items: center; }
+  .drawer :global(.x) { all: unset; cursor: pointer; font-size: 1.3rem; line-height: 1; padding: 2px 8px; border-radius: 6px; }
+  .drawer :global(.x:focus-visible) { outline: 2px solid var(--accent); }
+  .drawer :global(h3) { font-size: 1.1rem; }
+  .drawer :global(h4) { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin: 6px 0 0; font-family: var(--font-mono); }
+  .drawer :global(.facts) { margin: 0; display: grid; gap: 6px; }
+  .drawer :global(.facts div) { display: flex; justify-content: space-between; gap: 10px; }
+  .drawer :global(dt) { color: var(--text-3); }
+  .drawer :global(dd) { margin: 0; text-align: right; }
+  .drawer :global(form) { display: flex; gap: 6px; }
+  .drawer :global(form input) { flex: 1; min-width: 0; }
+  .drawer :global(form .btn) { padding: 8px 12px; font-size: 0.8rem; }
+
+  @media (max-width: 960px) {
+    .crm { grid-template-columns: minmax(0, 1fr); }
+    .side { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--border); padding: 0 0 10px; }
+    .ws, .planned { display: none; }
+    .drawer { width: auto; border-left: 0; border-top: 1px solid var(--border); padding: 14px 0 0; }
+    .main :global(.cols2) { grid-template-columns: 1fr; }
+  }
+</style>

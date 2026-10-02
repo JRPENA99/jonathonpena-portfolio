@@ -1,0 +1,61 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import StatusBadge from './StatusBadge.astro';
+import ProjectGlyph from './ProjectGlyph.astro';
+import { projectHref } from '../lib/content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  /** Larger layout used on the homepage. */
+  large?: boolean;
+}
+const { project, large = false } = Astro.props;
+const d = project.data;
+const href = projectHref(project);
+const external = !d.caseStudy;
+---
+
+<article class:list={['card', 'project', { large }]} data-categories={d.categories.join(' ')} data-reveal>
+  <div class="media">
+    {d.cover ? (
+      <Image src={d.cover} alt={d.coverAlt ?? ''} widths={[480, 800, 1200]} sizes="(max-width: 700px) 100vw, 560px" loading="lazy" />
+    ) : (
+      <ProjectGlyph id={project.id} />
+    )}
+  </div>
+  <div class="body">
+    <div class="meta">
+      <StatusBadge status={d.status} />
+      <span class="type">{d.type} · {d.year}</span>
+    </div>
+    <h3>
+      <a class="card-link" href={href} {...(external ? { target: '_blank', rel: 'noopener' } : {})}>{d.title}</a>
+    </h3>
+    <p class="summary">{d.summary}</p>
+    <div class="foot">
+      <ul class="tags">{d.tech.slice(0, 4).map((t) => <li class="tag">{t}</li>)}</ul>
+      <span class="go" aria-hidden="true">{external ? 'Visit ↗' : 'Case study →'}</span>
+    </div>
+    {external && <p class="soon">Case study coming soon</p>}
+  </div>
+</article>
+
+<style>
+  .project { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+  .media {
+    aspect-ratio: 16 / 9; background: var(--bg-sunk); border-bottom: 1px solid var(--border); overflow: hidden;
+  }
+  .media :global(img), .media :global(svg) { width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform 0.6s var(--ease); }
+  .project:hover .media :global(img), .project:hover .media :global(svg) { transform: scale(1.025); }
+  .body { display: flex; flex-direction: column; gap: 10px; padding: 20px 20px 18px; flex: 1; }
+  .meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .type { font-size: 0.78rem; color: var(--text-3); }
+  h3 { font-size: 1.2rem; }
+  .large h3 { font-size: 1.4rem; }
+  .summary { color: var(--text-2); font-size: 0.95rem; }
+  .foot { margin-top: auto; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .go { font-size: 0.85rem; color: var(--text-2); white-space: nowrap; transition: color 0.2s, transform 0.2s var(--ease); }
+  .project:hover .go { color: var(--accent); transform: translateX(2px); }
+  .soon { font: 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+</style>

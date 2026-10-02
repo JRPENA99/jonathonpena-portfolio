@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import Filters from '../../components/Filters.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import ContactCTA from '../../components/ContactCTA.astro';
+import { getProjects, categoryLabel, type Status } from '../../lib/content';
+import { repos, site } from '../../data/site';
+
+const projects = await getProjects();
+const main = projects.filter((p) => p.data.caseStudy);
+const sites = projects.filter((p) => p.data.categories.includes('web'));
+const used = new Set(main.flatMap((p) => p.data.categories));
+const options = Object.entries(categoryLabel)
+  .filter(([k]) => used.has(k as keyof typeof categoryLabel))
+  .map(([value, label]) => ({ value, label }));
+
+const legend: { s: Status; d: string }[] = [
+  { s: 'live', d: 'Shipped and public' },
+  { s: 'building', d: 'Actively being built' },
+  { s: 'prototype', d: 'Working demo, not a product' },
+  { s: 'experiment', d: 'Small test' },
+  { s: 'concept', d: 'Designed, early or no code' },
+];
+---
+
+<Base title="Projects" description="Projects by Jonathon Pena: web products, automation pipelines, sales technology and data tools, each labeled with where it actually stands.">
+  <PageHeader eyebrow="Projects" title="What I've built, and what I'm building" lede="Every project is labeled honestly. Live means shipped. Everything else is exactly what it says.">
+    <ul class="legend">
+      {legend.map((l) => <li><StatusBadge status={l.s} /><span>{l.d}</span></li>)}
+    </ul>
+  </PageHeader>
+
+  <section class="wrap pb">
+    <h2 class="sr-only">Case studies</h2>
+    <Filters label="Filter projects by category" attr="categories" target="#project-grid" options={options} />
+    <div class="grid grid-2" id="project-grid">
+      {main.map((p) => <ProjectCard project={p} />)}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sites-h">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Websites</p>
+          <h2 id="sites-h">Website work</h2>
+          <p class="lede">Sites for real businesses and people. If you need one, <a href="/contact/">let's talk</a>.</p>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        {sites.map((p) => <ProjectCard project={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="gh-h">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Source</p>
+          <h2 id="gh-h">On GitHub</h2>
+        </div>
+        <a class="text-link" href={site.github} target="_blank" rel="noopener">github.com/JRPENA99 ↗</a>
+      </div>
+      <ul class="repos">
+        {repos.map((r) => (
+          <li class="card">
+            <a class="card-link repo-name mono" href={`${site.github}/${r.name}`} target="_blank" rel="noopener">{r.name}</a>
+            <p class="muted">{r.description}</p>
+            <p class="rmeta mono"><span>{r.language}</span><span>Updated {r.updated}</span><span aria-hidden="true">View on GitHub ↗</span></p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <ContactCTA />
+</Base>
+
+<style>
+  .legend { list-style: none; padding: 0; margin: 32px 0 0; display: flex; flex-wrap: wrap; gap: 10px 26px; }
+  .legend li { display: flex; gap: 10px; align-items: center; font-size: 0.82rem; color: var(--text-3); }
+  .pb { padding-bottom: clamp(64px, 9vw, 112px); }
+  .repos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+  .repos li { padding: 18px 20px; display: grid; gap: 8px; }
+  .repo-name { font-size: 0.92rem; font-weight: 500; text-decoration: none; }
+  .repos .muted { font-size: 0.9rem; }
+  .rmeta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.7rem; color: var(--text-3); }
+  .rmeta span:last-child { margin-left: auto; }
+  .repos li:hover .rmeta span:last-child { color: var(--accent); }
+</style>

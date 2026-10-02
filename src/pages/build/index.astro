@@ -1,0 +1,28 @@
+---
+import { getEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import LogEntry from '../../components/LogEntry.astro';
+import Filters from '../../components/Filters.astro';
+import { getBuildLog } from '../../lib/content';
+
+const log = await getBuildLog();
+const projectIds = [...new Set(log.map((e) => e.data.project?.id).filter(Boolean))] as string[];
+const options = await Promise.all(
+  projectIds.map(async (id) => ({ value: id, label: (await getEntry('projects', id))?.data.title ?? id })),
+);
+---
+
+<Base title="Build Log" description="Jonathon Pena's build log: dated progress notes on projects in development. What got built, what broke, and what's next.">
+  <PageHeader eyebrow="Build log" title="What I'm working on, as it happens" lede="An engineering notebook, not polished thought leadership. Short notes on what I built, what broke, and what's next." />
+  <section class="wrap pb">
+    <Filters label="Filter by project" attr="project" target="#log" options={options} />
+    <div id="log">{log.map((e) => <LogEntry entry={e} />)}</div>
+    <p class="rss muted">Follow along with <a href="/rss.xml">RSS</a>.</p>
+  </section>
+</Base>
+
+<style>
+  .pb { padding-bottom: clamp(64px, 9vw, 112px); }
+  .rss { margin-top: 32px; font-size: 0.9rem; }
+</style>

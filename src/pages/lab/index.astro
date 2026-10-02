@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getLab, formatMonth } from '../../lib/content';
+
+const items = await getLab();
+---
+
+<Base title="Lab" description="Jonathon Pena's lab: small experiments, interface prototypes and dashboard studies. Things I'm testing, built with sample data.">
+  <PageHeader eyebrow="Lab" title="Things I'm testing" lede="Smaller experiments that aren't full projects: interface studies, dashboard prototypes, utilities. Some become projects. Most just teach me something." />
+  <section class="wrap pb">
+    <ul class="lab">
+      {items.map((x) => (
+        <li class="card" data-reveal>
+          <div class="top">
+            <StatusBadge status={x.data.status} />
+            <time class="mono" datetime={x.data.date.toISOString()}>{formatMonth(x.data.date)}</time>
+          </div>
+          <h2><a class="card-link" href={`/lab/${x.id}/`}>{x.data.title}</a></h2>
+          <p class="muted">{x.data.summary}</p>
+          <ul class="tags">
+            {x.data.demo && <li class="tag live">Interactive</li>}
+            {x.data.tags.map((t) => <li class="tag">{t}</li>)}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .pb { padding-bottom: clamp(64px, 9vw, 112px); }
+  .lab { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+  .lab > li { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  time { font-size: 0.7rem; color: var(--text-3); text-transform: uppercase; }
+  h2 { font-size: 1.2rem; }
+  .muted { font-size: 0.93rem; }
+  .tags { margin-top: auto; }
+  .tag.live { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+</style>

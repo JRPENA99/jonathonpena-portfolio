@@ -1,0 +1,40 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import Demo from '../../components/demos/Demo.astro';
+import { getLab, formatDate } from '../../lib/content';
+
+export async function getStaticPaths() {
+  return (await getLab()).map((item) => ({ params: { slug: item.id }, props: { item } }));
+}
+const { item } = Astro.props;
+const d = item.data;
+const { Content } = await render(item);
+---
+
+<Base title={`${d.title} (Lab)`} description={d.summary}>
+  <article class="wrap exp">
+    <a class="text-link back" href="/lab/">← Lab</a>
+    <div class="meta">
+      <StatusBadge status={d.status} size="md" />
+      <time class="mono" datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+    </div>
+    <h1>{d.title}</h1>
+    <p class="lede">{d.summary}</p>
+    {d.href && <p><a class="btn" href={d.href} target="_blank" rel="noopener">Open ↗</a></p>}
+    {d.demo && <div class="demo"><Demo name={d.demo} /></div>}
+    <div class="prose"><Content /></div>
+  </article>
+</Base>
+
+<style>
+  .exp { padding-block: clamp(36px, 6vw, 72px) clamp(64px, 9vw, 104px); }
+  .back { color: var(--text-2); margin-bottom: 32px; }
+  .meta { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; }
+  .meta time { font-size: 0.75rem; color: var(--text-3); }
+  h1 { font-size: clamp(2rem, 4.6vw, 3rem); }
+  .lede { margin: 18px 0 32px; }
+  .demo { margin-bottom: 44px; }
+  .prose { max-width: 70ch; }
+</style>

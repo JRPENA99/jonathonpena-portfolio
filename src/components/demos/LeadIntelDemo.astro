@@ -1,0 +1,138 @@
+---
+import DemoFrame from './DemoFrame.astro';
+---
+
+<DemoFrame title="lead-engine / accounts" kind="Prototype · Sample data" note="Interface prototype. Companies, signals and scores are invented. The real engine's scoring is still being designed.">
+  <div class="li" data-lead-demo>
+    <div class="d-row controls">
+      <label class="sr-only" for="li-q">Search companies</label>
+      <input id="li-q" class="d-input q" type="search" placeholder="Search companies…" data-q />
+      <div class="sel">
+        <label><span class="sr-only">Industry</span><select class="d-select" data-f="industry"><option value="">All industries</option></select></label>
+        <label><span class="sr-only">Trade activity</span><select class="d-select" data-f="trade"><option value="">Import / Export</option></select></label>
+        <label><span class="sr-only">Priority</span><select class="d-select" data-f="priority"><option value="">Any priority</option></select></label>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="d-table-wrap">
+        <table class="d-table">
+          <caption class="sr-only">Sample lead list. Select a row for details.</caption>
+          <thead>
+            <tr>
+              <th scope="col"><button type="button" data-sort="company">Company</button></th>
+              <th scope="col">Industry</th>
+              <th scope="col">Region</th>
+              <th scope="col">Trade</th>
+              <th scope="col"><button type="button" data-sort="fit">Service fit ↓</button></th>
+              <th scope="col">Priority</th>
+              <th scope="col">Research</th>
+            </tr>
+          </thead>
+          <tbody data-rows></tbody>
+        </table>
+      </div>
+      <aside class="d-panel detail" data-detail aria-live="polite"></aside>
+    </div>
+    <p class="d-sub count" data-count></p>
+  </div>
+</DemoFrame>
+
+<script>
+  import { leads, type Lead } from '../../data/demo';
+
+  document.querySelectorAll<HTMLElement>('[data-lead-demo]').forEach((root) => {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const filters: Record<string, string> = { industry: '', trade: '', priority: '' };
+    let q = '';
+    let sort: 'fit' | 'company' = 'fit';
+    let selected = leads[0].company;
+
+    (['industry', 'trade', 'priority'] as const).forEach((k) => {
+      const sel = $<HTMLSelectElement>(`[data-f="${k}"]`);
+      [...new Set(leads.map((l) => l[k]))].sort().forEach((v) => sel.add(new Option(v, v)));
+      sel.addEventListener('change', () => { filters[k] = sel.value; render(); });
+    });
+    $<HTMLInputElement>('[data-q]').addEventListener('input', (e) => { q = (e.target as HTMLInputElement).value.toLowerCase(); render(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) =>
+      b.addEventListener('click', () => { sort = b.dataset.sort as typeof sort; render(); }),
+    );
+
+    const prioClass = (p: Lead['priority']) => (p === 'High' ? 'hi' : p === 'Medium' ? 'md' : 'lo');
+    const researchClass = (r: Lead['research']) => (r === 'Ready' ? 'ok' : r === 'New' ? 'lo' : 'md');
+
+    const detail = (l: Lead) => {
+      const steps = ['New', 'Enriched', 'Researched', 'Ready'];
+      const at = steps.indexOf(l.research);
+      $('[data-detail]').innerHTML = `
+        <p class="d-sub">${l.industry} · ${l.region}</p>
+        <h3 class="dn">${l.company}</h3>
+        <div class="fit"><span class="d-sub">Service fit</span><strong>${l.fit}</strong><span class="d-bar"><span style="width:${l.fit}%"></span></span></div>
+        <dl class="facts">
+          <div><dt>Trade</dt><dd>${l.trade}</dd></div>
+          <div><dt>Services</dt><dd>${l.services}</dd></div>
+          <div><dt>Priority</dt><dd><span class="d-pill ${prioClass(l.priority)}">${l.priority}</span></dd></div>
+        </dl>
+        <p class="d-sub">Why it surfaced</p>
+        <p class="sig">${l.signal}</p>
+        <ol class="steps">${steps.map((s, i) => `<li class="${i <= at ? 'on' : ''}">${s}</li>`).join('')}</ol>
+        <button type="button" class="btn push" disabled title="Concept: would send the account to the CRM">Send to CRM →</button>`;
+    };
+
+    function render() {
+      const rows = leads
+        .filter((l) => (!filters.industry || l.industry === filters.industry) && (!filters.trade || l.trade === filters.trade) && (!filters.priority || l.priority === filters.priority))
+        .filter((l) => !q || l.company.toLowerCase().includes(q) || l.region.toLowerCase().includes(q))
+        .sort((a, b) => (sort === 'fit' ? b.fit - a.fit : a.company.localeCompare(b.company)));
+      $('[data-rows]').innerHTML = rows
+        .map(
+          (l) => `<tr tabindex="0" data-c="${l.company}" aria-selected="${l.company === selected}">
+            <td><strong>${l.company}</strong></td><td>${l.industry}</td><td class="d-sub">${l.region}</td><td>${l.trade}</td>
+            <td><span class="fitcell"><span class="d-bar"><span style="width:${l.fit}%"></span></span><span class="d-num">${l.fit}</span></span></td>
+            <td><span class="d-pill ${prioClass(l.priority)}">${l.priority}</span></td>
+            <td><span class="d-pill ${researchClass(l.research)}">${l.research}</span></td></tr>`,
+        )
+        .join('') || `<tr><td colspan="7" class="d-sub">No sample companies match.</td></tr>`;
+      $('[data-count]').textContent = `${rows.length} of ${leads.length} sample accounts`;
+      const cur = leads.find((l) => l.company === selected);
+      if (cur) detail(cur);
+    }
+
+    const pick = (tr: HTMLElement | null) => {
+      if (!tr?.dataset.c) return;
+      selected = tr.dataset.c;
+      root.querySelectorAll('tbody tr').forEach((r) => r.setAttribute('aria-selected', String(r === tr)));
+      detail(leads.find((l) => l.company === selected)!);
+    };
+    $('[data-rows]').addEventListener('click', (e) => pick((e.target as HTMLElement).closest('tr')));
+    $('[data-rows]').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick((e.target as HTMLElement).closest('tr')); }
+    });
+    render();
+  });
+</script>
+
+<style>
+  .li { display: grid; gap: 12px; }
+  .controls { align-items: stretch; }
+  .q { flex: 1 1 200px; }
+  .sel { display: flex; gap: 8px; flex-wrap: wrap; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 12px; align-items: start; }
+  .li :global(.fitcell) { display: flex; align-items: center; gap: 8px; }
+  .li :global(.fitcell .d-bar > span) { background: var(--st-prototype); }
+  .detail { display: grid; gap: 10px; font-size: 0.86rem; }
+  .detail :global(.dn) { font-size: 1.15rem; }
+  .detail :global(.fit) { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: center; }
+  .detail :global(.fit .d-bar > span) { background: var(--st-prototype); }
+  .detail :global(.facts) { display: grid; gap: 6px; margin: 0; }
+  .detail :global(.facts div) { display: flex; justify-content: space-between; gap: 10px; }
+  .detail :global(dt) { color: var(--text-3); }
+  .detail :global(dd) { margin: 0; text-align: right; }
+  .detail :global(.sig) { color: var(--text); }
+  .detail :global(.steps) { list-style: none; padding: 0; margin: 4px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .detail :global(.steps li) { font: 0.62rem var(--font-mono); text-transform: uppercase; color: var(--text-3); border-top: 2px solid var(--border); padding-top: 5px; }
+  .detail :global(.steps li.on) { border-color: var(--accent); color: var(--text); }
+  .detail :global(.push) { justify-content: center; font-size: 0.85rem; padding: 10px; opacity: 0.6; cursor: not-allowed; }
+  .count { text-align: right; }
+  @media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
+</style>

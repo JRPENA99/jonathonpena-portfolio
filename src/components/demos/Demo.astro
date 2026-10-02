@@ -1,0 +1,17 @@
+---
+/** Renders a demo by key. Content entries reference demos via their `demo` field. */
+import SalesPipelineDemo from './SalesPipelineDemo.astro';
+import LeadIntelDemo from './LeadIntelDemo.astro';
+import OpsDemo from './OpsDemo.astro';
+import CrmPrototype from './CrmPrototype.astro';
+import ContentPipeline from './ContentPipeline.astro';
+
+interface Props { name: 'content-pipeline' | 'lead-intel' | 'crm' | 'sales-pipeline' | 'ops' }
+const { name } = Astro.props;
+---
+
+{name === 'sales-pipeline' && <SalesPipelineDemo />}
+{name === 'lead-intel' && <LeadIntelDemo />}
+{name === 'ops' && <OpsDemo />}
+{name === 'crm' && <CrmPrototype />}
+{name === 'content-pipeline' && <ContentPipeline />}

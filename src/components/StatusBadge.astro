@@ -1,0 +1,47 @@
+---
+import { statusLabel, type Status } from '../lib/content';
+
+interface Props {
+  status: Status;
+  note?: string;
+  size?: 'sm' | 'md';
+}
+const { status, note, size = 'sm' } = Astro.props;
+// Filled dot = exists and works (live/building). Hollow ring = not finished as a product.
+const filled = status === 'live' || status === 'building';
+---
+
+<span class:list={['status', `st-${status}`, size, { filled }]}>
+  <span class="dot" aria-hidden="true"></span>
+  <span class="label">{statusLabel[status]}</span>
+  {note && <span class="note">· {note}</span>}
+</span>
+
+<style>
+  .status {
+    --c: var(--st-concept);
+    display: inline-flex; align-items: center; gap: 7px;
+    font: 500 0.7rem/1 var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--c); white-space: nowrap;
+  }
+  .status.md { font-size: 0.76rem; }
+  .st-live { --c: var(--st-live); }
+  .st-building { --c: var(--st-building); }
+  .st-prototype { --c: var(--st-prototype); }
+  .st-experiment { --c: var(--st-experiment); }
+  .st-concept { --c: var(--st-concept); }
+
+  .dot { position: relative; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--c); flex: none; }
+  .filled .dot { background: var(--c); }
+  .st-live .dot::after, .st-building .dot::after {
+    content: ''; position: absolute; inset: -1.5px; border-radius: 50%;
+    border: 1.5px solid var(--c); animation: ping 2.4s var(--ease) infinite;
+  }
+  .st-building .dot::after { animation-duration: 1.6s; }
+  .note { color: var(--text-3); text-transform: none; letter-spacing: 0; font-family: var(--font-sans); font-size: 0.8rem; }
+
+  @keyframes ping {
+    0% { transform: scale(1); opacity: 0.7; }
+    80%, 100% { transform: scale(2.6); opacity: 0; }
+  }
+</style>

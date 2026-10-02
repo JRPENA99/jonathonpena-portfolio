@@ -1,0 +1,136 @@
+---
+import DemoFrame from './DemoFrame.astro';
+---
+
+<DemoFrame title="pipeline / overview">
+  <div class="sp" data-sales-demo>
+    <div class="d-row head">
+      <div>
+        <p class="d-sub">Sales pipeline</p>
+        <h3 class="t">Overview</h3>
+      </div>
+      <div class="d-seg" role="group" aria-label="Trend period">
+        <button type="button" aria-pressed="true" data-period="12w">12 weeks</button>
+        <button type="button" aria-pressed="false" data-period="90d">Quarter</button>
+      </div>
+    </div>
+
+    <dl class="d-kpis">
+      <div class="d-kpi"><dt>Pipeline value</dt><dd data-k="value">—</dd><span class="delta" data-k="valueDelta"></span></div>
+      <div class="d-kpi"><dt>Open opportunities</dt><dd data-k="open">—</dd></div>
+      <div class="d-kpi"><dt>Accounts</dt><dd data-k="accounts">—</dd></div>
+      <div class="d-kpi"><dt>Follow-ups due</dt><dd data-k="followups">—</dd></div>
+      <div class="d-kpi"><dt>Win rate</dt><dd data-k="win">—</dd><span class="delta">sample, trailing</span></div>
+    </dl>
+
+    <div class="grid2">
+      <section class="d-panel">
+        <h4>Pipeline value trend</h4>
+        <div class="d-chart" data-trend></div>
+      </section>
+      <section class="d-panel">
+        <h4>By stage <span class="d-sub hint">· select to filter</span></h4>
+        <ul class="stages" data-stages></ul>
+      </section>
+    </div>
+
+    <div class="grid2 lower">
+      <section class="d-panel">
+        <div class="d-row"><h4>Accounts</h4><button type="button" class="clear" data-clear hidden>Clear filter ×</button></div>
+        <ul class="d-list" data-accounts></ul>
+      </section>
+      <section class="d-panel">
+        <h4>Recent activity</h4>
+        <ul class="d-list" data-activity></ul>
+      </section>
+    </div>
+  </div>
+</DemoFrame>
+
+<script>
+  import { deals, stages, pipelineTrend, pipelineTrend90, activity } from '../../data/demo';
+  import { areaChart, usd } from '../../scripts/charts';
+
+  document.querySelectorAll<HTMLElement>('[data-sales-demo]').forEach((root) => {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    let stageFilter: string | null = null;
+
+    const open = deals.filter((d) => d.stage !== 'Won');
+    const set = (k: string, v: string) => ($(`[data-k="${k}"]`).textContent = v);
+    set('value', usd(open.reduce((s, d) => s + d.value, 0)));
+    set('open', String(open.length));
+    set('accounts', String(new Set(deals.map((d) => d.account)).size));
+    set('followups', String(deals.filter((d) => ['Today', 'Tomorrow'].includes(d.due)).length));
+    set('win', '32%');
+
+    const drawTrend = (p: string) => {
+      const vals = p === '12w' ? pipelineTrend : pipelineTrend90;
+      const labels = vals.map((_, i) => `Wk ${i + 1}`);
+      areaChart($('[data-trend]'), vals.map((v) => v * 1000), labels, usd);
+      const delta = ((vals.at(-1)! - vals[0]) / vals[0]) * 100;
+      set('valueDelta', `+${delta.toFixed(0)}% over period`);
+    };
+    drawTrend('12w');
+    root.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll('[data-period]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        drawTrend(b.dataset.period!);
+      }),
+    );
+
+    const max = Math.max(...stages.map((s) => deals.filter((d) => d.stage === s).reduce((a, d) => a + d.value, 0)));
+    const stageList = $('[data-stages]');
+    stageList.innerHTML = stages
+      .map((s) => {
+        const items = deals.filter((d) => d.stage === s);
+        const total = items.reduce((a, d) => a + d.value, 0);
+        return `<li><button type="button" aria-pressed="false" data-stage="${s}">
+          <span class="sn">${s}</span><span class="sc d-sub">${items.length}</span>
+          <span class="d-bar"><span style="width:${(total / max) * 100}%"></span></span>
+          <span class="sv">${usd(total)}</span></button></li>`;
+      })
+      .join('');
+
+    const renderAccounts = () => {
+      const rows = deals.filter((d) => !stageFilter || d.stage === stageFilter).sort((a, b) => b.value - a.value);
+      $('[data-accounts]').innerHTML = rows
+        .map((d) => `<li><span><strong>${d.account}</strong><br><span class="d-sub">${d.stage} · next: ${d.next}</span></span><span class="d-num">${usd(d.value)}<br><span class="d-sub">${d.due}</span></span></li>`)
+        .join('');
+      $('[data-clear]').hidden = !stageFilter;
+      stageList.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stage === stageFilter)));
+    };
+    stageList.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (!b) return;
+      stageFilter = stageFilter === b.dataset.stage ? null : b.dataset.stage!;
+      renderAccounts();
+    });
+    $('[data-clear]').addEventListener('click', () => { stageFilter = null; renderAccounts(); });
+    renderAccounts();
+
+    $('[data-activity]').innerHTML = activity
+      .map((a) => `<li><span>${a.what}<br><span class="d-sub">${a.who}</span></span><span class="d-sub">${a.when}</span></li>`)
+      .join('');
+  });
+</script>
+
+<style>
+  .sp { display: grid; gap: 14px; }
+  .t { font-size: 1.1rem; }
+  .grid2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+  .lower { grid-template-columns: 1fr 1fr; }
+  .hint { text-transform: none; letter-spacing: 0; font-family: var(--font-sans); font-weight: 400; }
+  .stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .stages :global(button) {
+    all: unset; box-sizing: border-box; width: 100%; cursor: pointer; border-radius: 8px; padding: 8px;
+    display: grid; grid-template-columns: 92px 20px 1fr 54px; align-items: center; gap: 10px; font-size: 0.84rem;
+  }
+  .stages :global(button:hover) { background: var(--surface-2); }
+  .stages :global(button:focus-visible) { outline: 2px solid var(--accent); }
+  .stages :global(button[aria-pressed='true']) { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .stages :global(button[aria-pressed='true'] .d-bar > span) { background: var(--accent); }
+  .stages :global(.sv) { text-align: right; font-variant-numeric: tabular-nums; }
+  .clear { font: 0.75rem var(--font-sans); background: none; border: 0; color: var(--text-2); cursor: pointer; margin-bottom: 12px; }
+  .d-list :global(.d-num) { text-align: right; white-space: nowrap; }
+  @media (max-width: 760px) { .grid2, .lower { grid-template-columns: minmax(0, 1fr); } }
+</style>

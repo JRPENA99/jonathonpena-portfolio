@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found" description="This page doesn't exist.">
+  <section class="wrap nf">
+    <p class="eyebrow mono">404</p>
+    <h1>This page doesn't exist. Yet.</h1>
+    <p class="lede">It may have moved, or it's still being built.</p>
+    <div class="a">
+      <a class="btn btn-primary" href="/">Home</a>
+      <a class="btn" href="/projects/">Projects</a>
+      <a class="btn" href="/build/">Build log</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { padding-block: clamp(80px, 14vw, 160px); }
+  .lede { margin-top: 18px; }
+  .a { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
+</style>

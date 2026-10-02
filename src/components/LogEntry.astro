@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
+import StatusBadge from './StatusBadge.astro';
+import { formatMonth } from '../lib/content';
+
+interface Props { entry: CollectionEntry<'build'> }
+const { entry } = Astro.props;
+const d = entry.data;
+const project = d.project ? await getEntry(d.project) : undefined;
+---
+
+<article class="entry" data-project={project?.id ?? ''} data-tags={d.tags.join(' ')} data-reveal>
+  <div class="when">
+    <time class="mono" datetime={d.date.toISOString()}>{formatMonth(d.date)}</time>
+  </div>
+  <div class="what">
+    <div class="meta">
+      {project && <span class="proj mono">{project.data.title}</span>}
+      {d.status && <StatusBadge status={d.status} />}
+    </div>
+    <h3><a href={`/build/${entry.id}/`} class="card-link">{d.title}</a></h3>
+    <p class="muted">{d.summary}</p>
+    <span class="read" aria-hidden="true">Read update →</span>
+  </div>
+</article>
+
+<style>
+  .entry {
+    position: relative; display: grid; grid-template-columns: 120px 1fr; gap: 24px;
+    padding: 26px 0; border-top: 1px solid var(--border);
+  }
+  .entry:hover h3 { color: var(--accent); }
+  .entry:hover .read { color: var(--accent); }
+  .when time { font-size: 0.78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .what { display: grid; gap: 8px; }
+  .meta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .proj { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); }
+  h3 { font-size: 1.2rem; transition: color 0.2s; }
+  h3 a { text-decoration: none; color: inherit; }
+  .muted { max-width: 68ch; font-size: 0.97rem; }
+  .read { font-size: 0.85rem; color: var(--text-2); transition: color 0.2s; }
+  @media (max-width: 640px) { .entry { grid-template-columns: 1fr; gap: 8px; } }
+</style>

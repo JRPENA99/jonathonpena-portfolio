@@ -1,0 +1,71 @@
+---
+/**
+ * Accessible filter chips. Items to filter carry `data-<attr>` with space-separated values.
+ * Without JavaScript the chips stay hidden and every item shows.
+ */
+interface Props {
+  label: string;
+  /** Data attribute on items, e.g. "categories" for data-categories. */
+  attr: string;
+  /** Selector for the container whose children are filtered. */
+  target: string;
+  options: { value: string; label: string }[];
+}
+const { label, attr, target, options } = Astro.props;
+---
+
+<div class="filters" role="group" aria-label={label} data-filters data-attr={attr} data-target={target} hidden>
+  <button type="button" aria-pressed="true" data-value="">All</button>
+  {options.map((o) => <button type="button" aria-pressed="false" data-value={o.value}>{o.label}</button>)}
+  <p class="sr-only" aria-live="polite" data-filter-status></p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-filters]').forEach((group) => {
+    const attr = group.dataset.attr!;
+    const container = document.querySelector(group.dataset.target!);
+    if (!container) return;
+    const items = [...container.querySelectorAll<HTMLElement>(`[data-${attr}]`)];
+    const status = group.querySelector('[data-filter-status]')!;
+    const buttons = [...group.querySelectorAll<HTMLButtonElement>('button')];
+    group.hidden = false;
+
+    const apply = (value: string) => {
+      let shown = 0;
+      for (const item of items) {
+        const values = (item.dataset[attr] ?? '').split(' ');
+        const match = !value || values.includes(value);
+        item.hidden = !match;
+        if (match) {
+          shown++;
+          item.classList.add('is-in');
+        }
+      }
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === value)));
+      status.textContent = `${shown} shown`;
+      const url = new URL(location.href);
+      if (value) url.searchParams.set(attr, value);
+      else url.searchParams.delete(attr);
+      history.replaceState(null, '', url);
+    };
+
+    group.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('button');
+      if (btn) apply(btn.dataset.value ?? '');
+    });
+
+    const initial = new URL(location.href).searchParams.get(attr);
+    if (initial && buttons.some((b) => b.dataset.value === initial)) apply(initial);
+  });
+</script>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+  button {
+    font: 500 0.85rem/1 var(--font-sans); padding: 9px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: transparent; color: var(--text-2);
+    transition: all 0.15s var(--ease);
+  }
+  button:hover { color: var(--text); border-color: var(--border-strong); }
+  button[aria-pressed='true'] { background: var(--text); color: var(--bg); border-color: var(--text); }
+</style>

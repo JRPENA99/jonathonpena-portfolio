@@ -1,0 +1,106 @@
+---
+import DemoFrame from './DemoFrame.astro';
+---
+
+<DemoFrame title="operations / board">
+  <div class="ops" data-ops-demo>
+    <div class="d-row">
+      <div>
+        <p class="d-sub">Operations</p>
+        <h3 class="t">Work in flight</h3>
+      </div>
+      <div class="d-seg" role="group" aria-label="Week">
+        <button type="button" aria-pressed="true" data-week="This week">This week</button>
+        <button type="button" aria-pressed="false" data-week="Last week">Last week</button>
+      </div>
+    </div>
+
+    <ol class="flow" data-flow aria-label="Workflow status"></ol>
+
+    <div class="g3">
+      <section class="d-panel">
+        <h4>Throughput · items completed</h4>
+        <div class="d-chart" data-through></div>
+      </section>
+      <section class="d-panel comp">
+        <h4>Completion</h4>
+        <div class="ring" data-ring></div>
+        <p class="d-sub">Closed on or before due date</p>
+      </section>
+    </div>
+
+    <div class="g2">
+      <section class="d-panel">
+        <h4>Open tasks</h4>
+        <ul class="d-list" data-tasks></ul>
+      </section>
+      <section class="d-panel">
+        <h4>Exceptions</h4>
+        <ul class="d-list" data-exceptions></ul>
+      </section>
+    </div>
+  </div>
+</DemoFrame>
+
+<script>
+  import { ops } from '../../data/demo';
+  import { barChart } from '../../scripts/charts';
+
+  document.querySelectorAll<HTMLElement>('[data-ops-demo]').forEach((root) => {
+    const $ = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const total = ops.stages.reduce((s, x) => s + x.count, 0);
+    $('[data-flow]').innerHTML = ops.stages
+      .map((s) => `<li style="flex:${s.count}"><span class="n">${s.count}</span><span class="d-sub">${s.name}</span></li>`)
+      .join('');
+    $('[data-flow]').setAttribute('aria-label', `Workflow status, ${total} items`);
+
+    const draw = (week: string) => {
+      barChart($('[data-through]'), ops.throughput[week], ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], (v) => `${v} items`);
+      const pct = ops.completion[week];
+      const C = 2 * Math.PI * 34;
+      $('[data-ring]').innerHTML = `<svg viewBox="0 0 84 84" role="img" aria-label="${Math.round(pct * 100)}% completion">
+        <circle cx="42" cy="42" r="34" fill="none" stroke="var(--border)" stroke-width="7"/>
+        <circle cx="42" cy="42" r="34" fill="none" stroke="var(--st-live)" stroke-width="7" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset .6s"/>
+        <text x="42" y="47" text-anchor="middle" font-size="16" font-weight="600" fill="var(--text)">${Math.round(pct * 100)}%</text></svg>`;
+    };
+    draw('This week');
+    root.querySelectorAll<HTMLButtonElement>('[data-week]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll('[data-week]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        draw(b.dataset.week!);
+      }),
+    );
+
+    $('[data-tasks]').innerHTML = ops.tasks
+      .map((t) => `<li><span><span class="d-sub mono">${t.id}</span> ${t.title}<br><span class="d-sub">${t.owner} · ${t.state}</span></span><span class="d-sub">${t.due}</span></li>`)
+      .join('');
+    const sev = (s: string) => (s === 'High' ? 'hi' : s === 'Medium' ? 'md' : 'lo');
+    $('[data-exceptions]').innerHTML = ops.exceptions
+      .map((x) => `<li><span>${x.title}<br><span class="d-sub mono">${x.id} · open ${x.age}</span></span><span class="d-pill ${sev(x.severity)}">${x.severity}</span></li>`)
+      .join('');
+  });
+</script>
+
+<style>
+  .ops { display: grid; gap: 14px; }
+  .t { font-size: 1.1rem; }
+  .flow { list-style: none; margin: 0; padding: 0; display: flex; gap: 3px; }
+  .flow :global(li) {
+    min-width: 64px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .flow :global(li:first-child) { border-radius: 10px 0 0 10px; }
+  .flow :global(li:last-child) { border-radius: 0 10px 10px 0; background: color-mix(in srgb, var(--st-live) 10%, var(--surface)); }
+  .flow :global(.n) { font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .g3 { display: grid; grid-template-columns: 1fr 200px; gap: 14px; }
+  .g2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+  .comp { display: grid; justify-items: center; align-content: start; text-align: center; }
+  .comp h4 { justify-self: start; }
+  .ring { width: 110px; }
+  @media (max-width: 760px) {
+    .g3, .g2 { grid-template-columns: 1fr; }
+    .flow { flex-wrap: wrap; }
+    .flow :global(li) { flex: 1 1 30% !important; border-radius: 8px !important; }
+  }
+</style>

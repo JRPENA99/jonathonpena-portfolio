@@ -83,7 +83,7 @@ export const repos = [
   },
   {
     name: 'steph-success-site',
-    description: 'Personal brand site for Steph Success.',
+    description: 'Multi-page professional site for Stephani Luna (stephaniluna.com). Static HTML with a small Node build script.',
     language: 'HTML / CSS',
     updated: '2026-10',
   },

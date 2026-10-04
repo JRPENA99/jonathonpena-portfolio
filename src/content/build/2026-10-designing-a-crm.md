@@ -17,4 +17,4 @@ I'm designing from the day inward:
 2. Where is each deal?
 3. What do I know about this account?
 
-Built a [clickable prototype](/projects/crm/) with sample data: a pipeline board you can move deals across, an account drawer with notes, and a task list. No backend. Everything resets on reload. It's for working out the workflow, not shipping.
+Built a [clickable prototype](/lab/crm-concept-prototype/) with sample data: a pipeline board you can move deals across, an account drawer with notes, and a task list. No backend. Everything resets on reload. It's for working out the workflow, not shipping.

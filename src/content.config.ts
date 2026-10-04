@@ -40,6 +40,10 @@ const projects = defineCollection({
       /** Cover image in src/assets/projects/ (optimized automatically). */
       cover: image().optional(),
       coverAlt: z.string().optional(),
+      /** Extra screenshots shown under "Interface" on the case study. */
+      gallery: z
+        .array(z.object({ src: image(), alt: z.string(), caption: z.string().optional(), narrow: z.boolean().default(false) }))
+        .default([]),
       /** Steps rendered as the workflow diagram on the case study. */
       workflow: z.array(z.string()).optional(),
       workflowTitle: z.string().optional(),

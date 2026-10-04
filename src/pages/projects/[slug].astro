@@ -65,9 +65,22 @@ const schema = [{
       </div>
     )}
 
-    {(d.workflow || d.demo) && (
+    {(d.workflow || d.demo || d.gallery.length > 0) && (
       <section class="wrap visuals" aria-label="Architecture and interface">
         {d.workflow && <FlowDiagram steps={d.workflow} title={d.workflowTitle ?? 'Workflow'} />}
+        {d.gallery.length > 0 && (
+          <div>
+            <p class="eyebrow">Interface</p>
+            <div class="gallery">
+              {d.gallery.map((g) => (
+                <figure class:list={['shot', { narrow: g.narrow }]} data-reveal>
+                  <Image src={g.src} alt={g.alt} widths={g.narrow ? [360, 720] : [640, 1024, 1600]} sizes={g.narrow ? '(max-width: 860px) 70vw, 300px' : '(max-width: 860px) 100vw, 800px'} loading="lazy" />
+                  {g.caption && <figcaption>{g.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </div>
+        )}
         {d.demo && (
           <div class="demo">
             <p class="eyebrow">{d.demo === 'content-pipeline' ? 'Architecture' : 'Interface'}</p>
@@ -141,6 +154,18 @@ const schema = [{
 
   .cover :global(img) { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
   .visuals { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(32px, 5vw, 56px); padding-block: clamp(32px, 5vw, 56px); }
+
+  .gallery { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 16px; align-items: start; }
+  .gallery .shot:not(.narrow) { grid-column: 1; }
+  .gallery .narrow { grid-column: 2; grid-row: 1 / span 2; }
+  .shot { margin: 0; }
+  .shot :global(img) { width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  .shot figcaption { font-size: 0.82rem; color: var(--text-3); margin-top: 8px; }
+  @media (max-width: 860px) {
+    .gallery { grid-template-columns: minmax(0, 1fr); }
+    .gallery .shot, .gallery .narrow { grid-column: 1; grid-row: auto; }
+    .gallery .narrow { width: min(300px, 80%); }
+  }
 
   .body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: clamp(32px, 6vw, 80px); padding-block: clamp(24px, 4vw, 48px) clamp(64px, 9vw, 104px); }
   .prose { max-width: 70ch; }

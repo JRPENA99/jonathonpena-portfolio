@@ -1,26 +1,25 @@
 ---
-title: Building an Automated Content Engine
+title: "Content Engine V1: Topic In, Script Out"
 date: 2026-06-04
 project: content-engine
 status: building
-tags: [python, automation, ffmpeg]
-summary: Starting a pipeline for long-form ambience video. The goal is to make a new render come from a config file, not an editing session.
+tags: [python, automation]
+summary: The first version of Content Engine was a Python script that turns a topic into a templated video script. It worked, and it showed me the wrong problem to solve.
 ---
 
-Started a new project: a pipeline for producing long-form ambience videos (rain, fireplaces, city nights).
+Started a project called Content Engine. The plan was an AI-powered pipeline for short-form video: topic → research → script → voiceover → images → video → upload.
 
-Making these by hand is mostly repetition: loop the footage, line up the audio, export, wait. The editing decisions are small. The time cost is large. That's a good sign something should be a system.
-
-The shape I'm aiming for:
+Version 1 is the first step of that plan: a Python script that asks for a topic and writes a title, hook, script outline, scene list and hashtags to a text file.
 
 ```
-visual assets + audio assets + project config
-        ↓
-  Python orchestration
-        ↓
-   FFmpeg processing
-        ↓
-    rendered output
+Enter a topic: SAP careers
+
+TITLE:
+3 Things You Didn't Know About SAP careers
+HOOK:
+What if I told you most people completely misunderstand SAP careers?
 ```
 
-First rule for myself: anything that changes between videos goes in the config. If I hardcode a path or a duration "just for now," that's a scene I can't generate later.
+It does exactly what it says. The output is also exactly the same shape for every topic, because it's a template. That's fine for learning file handling and project structure. It's not a product.
+
+The useful question for next time: which part of making videos is *actually* repetitive?

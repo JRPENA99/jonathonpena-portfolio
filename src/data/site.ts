@@ -38,7 +38,7 @@ export const capabilities = [
   {
     title: 'Web Products',
     body: 'Websites and interfaces built around one specific goal for one specific audience, then refined until the structure and copy actually serve it.',
-    examples: ['Woodfox Roasters', 'This site', 'Brand sites'],
+    examples: ['Woodfox Coffee', 'This site', 'Brand sites'],
   },
   {
     title: 'Operations & Process Design',
@@ -71,15 +71,9 @@ export const repos = [
   },
   {
     name: 'woodfox-roasters',
-    description: 'Website for Woodfox Roasters, a young specialty coffee roaster.',
+    description: 'Website and shop (in preview) for Woodfox Coffee, a young specialty coffee company.',
     language: 'Astro',
     updated: '2026-10',
-  },
-  {
-    name: 'content-engine',
-    description: 'Python + FFmpeg pipeline for generating long-form ambience video.',
-    language: 'Python',
-    updated: '2026-06',
   },
   {
     name: 'doromezcal-site',
@@ -91,6 +85,6 @@ export const repos = [
     name: 'steph-success-site',
     description: 'Personal brand site for Steph Success.',
     language: 'HTML / CSS',
-    updated: '2026-03',
+    updated: '2026-10',
   },
 ];

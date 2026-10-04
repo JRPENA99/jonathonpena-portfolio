@@ -44,6 +44,28 @@ const projects = defineCollection({
       gallery: z
         .array(z.object({ src: image(), alt: z.string(), caption: z.string().optional(), narrow: z.boolean().default(false) }))
         .default([]),
+      /**
+       * Progression timeline shown on the case study, oldest first.
+       * Each stage can carry one visual: an image (src/assets), a looping video (public/), or a code/text snippet.
+       */
+      timeline: z
+        .array(
+          z.object({
+            when: z.string(),
+            title: z.string(),
+            body: z.string(),
+            points: z.array(z.string()).default([]),
+            image: image().optional(),
+            video: z.string().optional(),
+            poster: z.string().optional(),
+            vertical: z.boolean().default(false),
+            code: z.string().optional(),
+            alt: z.string().optional(),
+            caption: z.string().optional(),
+            current: z.boolean().default(false),
+          }),
+        )
+        .default([]),
       /** Steps rendered as the workflow diagram on the case study. */
       workflow: z.array(z.string()).optional(),
       workflowTitle: z.string().optional(),

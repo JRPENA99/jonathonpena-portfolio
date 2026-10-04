@@ -1,0 +1,106 @@
+---
+/**
+ * Project progression: a vertical timeline, oldest at the top, each stage with an optional visual.
+ * Videos are muted, looping, and only load when scrolled near (preload="none" + IntersectionObserver).
+ */
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  stages: CollectionEntry<'projects'>['data']['timeline'];
+  title?: string;
+}
+const { stages, title = 'Progression' } = Astro.props;
+---
+
+<section class="tl" aria-labelledby="tl-h">
+  <div class="tl-head">
+    <p class="eyebrow">Progression</p>
+    <h2 id="tl-h">{title}</h2>
+  </div>
+  <ol>
+    {stages.map((s, i) => (
+      <li class:list={['stage', { current: s.current, 'has-media': s.image || s.video || s.code }]} data-reveal>
+        <div class="rail" aria-hidden="true"><span class="node">{String(i + 1).padStart(2, '0')}</span></div>
+        <div class="text">
+          <p class="when mono">{s.when}{s.current && <span class="now"> · Now</span>}</p>
+          <h3>{s.title}</h3>
+          <p class="body">{s.body}</p>
+          {s.points.length > 0 && <ul class="points">{s.points.map((p) => <li>{p}</li>)}</ul>}
+        </div>
+        {(s.image || s.video || s.code) && (
+          <figure class:list={['media', { vertical: s.vertical }]}>
+            {s.video && (
+              <video muted loop playsinline preload="none" poster={s.poster} data-autoplay aria-label={s.alt}>
+                <source src={s.video} type="video/mp4" />
+              </video>
+            )}
+            {!s.video && s.image && (
+              <Image src={s.image} alt={s.alt ?? ''} widths={[480, 800, 1200]} sizes="(max-width: 900px) 100vw, 560px" loading="lazy" />
+            )}
+            {!s.video && !s.image && s.code && <pre class="code"><code>{s.code}</code></pre>}
+            {s.caption && <figcaption>{s.caption}</figcaption>}
+          </figure>
+        )}
+      </li>
+    ))}
+  </ol>
+</section>
+
+<script>
+  // Play looping clips only while visible; respect reduced motion (poster stays, controls appear).
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]').forEach((v) => {
+    if (reduce || !('IntersectionObserver' in window)) {
+      v.controls = true;
+      return;
+    }
+    new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) v.play().catch(() => (v.controls = true));
+        else v.pause();
+      },
+      { threshold: 0.35 },
+    ).observe(v);
+  });
+</script>
+
+<style>
+  .tl-head { margin-bottom: clamp(28px, 4vw, 44px); }
+  ol { list-style: none; margin: 0; padding: 0; }
+  .stage {
+    display: grid; grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1.15fr); gap: 0 28px;
+    padding-bottom: clamp(36px, 5vw, 56px); position: relative;
+  }
+  .stage:not(.has-media) { grid-template-columns: 48px minmax(0, 1fr); }
+  .rail { position: relative; display: flex; justify-content: center; }
+  .rail::before { content: ''; position: absolute; top: 34px; bottom: -6px; width: 1px; background: var(--border-strong); }
+  .stage:last-child .rail::before { display: none; }
+  .node {
+    position: relative; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--bg); border: 1px solid var(--border-strong); font: 0.66rem var(--font-mono); color: var(--text-3);
+  }
+  .current .node { border-color: var(--st-building); color: var(--st-building); box-shadow: 0 0 0 4px color-mix(in srgb, var(--st-building) 15%, transparent); }
+  .text { padding-top: 4px; min-width: 0; }
+  .when { font-size: 0.72rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+  .now { color: var(--st-building); }
+  h3 { font-size: 1.2rem; margin-bottom: 10px; }
+  .body { color: var(--text-2); font-size: 0.97rem; }
+  .points { margin: 12px 0 0; padding-left: 1.1em; color: var(--text-2); font-size: 0.92rem; display: grid; gap: 4px; }
+  .media { margin: 0; min-width: 0; }
+  .media :global(img), .media video {
+    width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-sunk);
+  }
+  .media.vertical { max-width: 260px; }
+  .code {
+    margin: 0; padding: 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-sunk);
+    font: 0.78rem/1.6 var(--font-mono); color: var(--text-2); overflow-x: auto; white-space: pre;
+  }
+  figcaption { font-size: 0.8rem; color: var(--text-3); margin-top: 8px; }
+
+  @media (max-width: 900px) {
+    .stage, .stage:not(.has-media) { grid-template-columns: 40px minmax(0, 1fr); }
+    .media { grid-column: 2; margin-top: 18px; }
+    .media.vertical { max-width: 220px; }
+  }
+</style>

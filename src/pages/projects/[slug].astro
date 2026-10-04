@@ -7,6 +7,7 @@ import FlowDiagram from '../../components/FlowDiagram.astro';
 import LogEntry from '../../components/LogEntry.astro';
 import ContactCTA from '../../components/ContactCTA.astro';
 import Demo from '../../components/demos/Demo.astro';
+import Timeline from '../../components/Timeline.astro';
 import { getProjects, getBuildLog, statusLabel } from '../../lib/content';
 import { site } from '../../data/site';
 
@@ -90,6 +91,12 @@ const schema = [{
       </section>
     )}
 
+    {d.timeline.length > 0 && (
+      <div class="wrap timeline-wrap">
+        <Timeline stages={d.timeline} title={`How ${d.title} got here`} />
+      </div>
+    )}
+
     <div class="wrap body">
       <div class="prose"><Content /></div>
       <aside class="side">
@@ -155,6 +162,7 @@ const schema = [{
   .cover :global(img) { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
   .visuals { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(32px, 5vw, 56px); padding-block: clamp(32px, 5vw, 56px); }
 
+  .timeline-wrap { padding-block: clamp(40px, 6vw, 72px) clamp(8px, 2vw, 16px); border-top: 1px solid var(--border); }
   .gallery { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 16px; align-items: start; }
   .gallery .shot:not(.narrow) { grid-column: 1; }
   .gallery .narrow { grid-column: 2; grid-row: 1 / span 2; }

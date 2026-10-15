@@ -1,12 +1,9 @@
 ---
 import type { CardProfile } from '../../data/cards';
-import { cardUrl, vcardPath, fullName } from '../../data/cards';
-import { qrSvg } from '../../lib/qr';
+import { vcardPath, fullName } from '../../data/cards';
 
 interface Props { profile: CardProfile }
 const { profile: p } = Astro.props;
-const url = cardUrl(p);
-const qr = await qrSvg(url);
 const name = fullName(p);
 const host = (href: string) => href.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 
@@ -77,13 +74,6 @@ const linkIcon: Record<string, string> = {
     </ul>
   )}
 
-  <figure class="qr">
-    <div class="qr-tile" data-qr role="img" aria-label={`QR code linking to ${url}`} set:html={qr} />
-    <figcaption>
-      <span class="eyebrow">Scan to share</span>
-      <span class="mono qr-url" set:html={host(url).replace('/', '<wbr>/')} />
-    </figcaption>
-  </figure>
 </article>
 
 <script>
@@ -96,7 +86,7 @@ const linkIcon: Record<string, string> = {
     const id = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
     const res = await fetch(`/card/p/${id}.json`, { cache: 'no-store' }).catch(() => null);
     if (!res?.ok) return;
-    const data: { phone: string; phoneDisplay: string; vcf: string; qr: string } = await res.json();
+    const data: { phone: string; phoneDisplay: string; vcf: string } = await res.json();
 
     const call = card.querySelector<HTMLAnchorElement>('[data-call]');
     if (call) {
@@ -105,11 +95,6 @@ const linkIcon: Record<string, string> = {
       call.hidden = false;
     }
     card.querySelector<HTMLAnchorElement>('[data-save]')?.setAttribute('href', data.vcf);
-    const qr = card.querySelector<HTMLElement>('[data-qr]');
-    if (qr) {
-      qr.innerHTML = data.qr;
-      qr.setAttribute('aria-label', 'QR code for this card, including the phone number');
-    }
   }
   const run = () => document.querySelectorAll<HTMLElement>('[data-card]').forEach((c) => void unlock(c));
   run();
@@ -160,12 +145,6 @@ const linkIcon: Record<string, string> = {
   .links a:hover { color: var(--text); border-color: var(--border-strong); }
   .links .arrow { position: absolute; top: 6px; right: 8px; font-size: 0.65rem; color: var(--text-3); }
 
-  .qr { margin: 6px 0 0; display: flex; align-items: center; gap: 16px; padding-top: 18px; border-top: 1px solid var(--border); }
-  .qr-tile { width: 116px; flex: none; background: #fff; border-radius: 10px; padding: 2px; }
-  .qr-tile :global(svg) { width: 100%; height: auto; display: block; }
-  .qr figcaption { display: grid; gap: 4px; min-width: 0; }
-  .qr .eyebrow { margin: 0; }
-  .qr-url { font-size: 0.78rem; color: var(--text-2); }
 
   @media (max-width: 360px) {
     .act { grid-template-columns: 32px 1fr; }

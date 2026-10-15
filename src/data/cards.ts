@@ -2,7 +2,6 @@
  * Digital business cards. Each profile becomes:
  *   - a page:   /card/ for the default profile, /card/<slug>/ for the others
  *   - a vCard:  /card/<slug>.vcf  (the "Save contact" button)
- *   - a QR code pointing at its page, generated at build time
  *
  * To add a card, add an entry below. Only add someone else's details with their permission.
  * Card pages are noindex and left out of the sitemap (see astro.config.mjs).

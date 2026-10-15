@@ -26,6 +26,10 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+        env:
+          # Private business-card details. Set in GitHub: Settings → Secrets and variables → Actions.
+          CARD_JONATHON_PHONE: ${{ secrets.CARD_JONATHON_PHONE }}
+          CARD_JONATHON_KEY: ${{ secrets.CARD_JONATHON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -29,7 +29,8 @@ function fold(line: string): string {
   return out.join('\r\n ');
 }
 
-export function buildVCard(c: CardProfile): string {
+/** `phone` is only passed for the private vCard (see cardPrivate.ts); the public one has no number. */
+export function buildVCard(c: CardProfile, phone?: string): string {
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
@@ -38,7 +39,7 @@ export function buildVCard(c: CardProfile): string {
   ];
   if (c.org) lines.push(`ORG:${esc(c.org)}`);
   if (c.title) lines.push(`TITLE:${esc(c.title)}`);
-  if (c.phone) lines.push(`TEL;TYPE=CELL,VOICE:${c.phone}`);
+  if (phone) lines.push(`TEL;TYPE=CELL,VOICE:${phone}`);
   if (c.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${c.email}`);
   if (c.website) lines.push(`URL:${c.website}`);
   for (const l of c.links) {

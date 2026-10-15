@@ -2,6 +2,14 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
+// Private card details (CARD_<SLUG>_PHONE / CARD_<SLUG>_KEY) come from a gitignored .env locally
+// and from GitHub Actions secrets in CI. See src/lib/cardPrivate.ts.
+try {
+  process.loadEnvFile('.env');
+} catch {
+  /* no .env: fine, cards build without private details */
+}
+
 export default defineConfig({
   site: 'https://jonathonpena.dev',
   trailingSlash: 'ignore',

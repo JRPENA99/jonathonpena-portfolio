@@ -6,6 +6,9 @@
  *
  * To add a card, add an entry below. Only add someone else's details with their permission.
  * Card pages are noindex and left out of the sitemap (see astro.config.mjs).
+ *
+ * PHONE NUMBERS ARE NOT STORED HERE. This repository is public. A profile's number comes from
+ * build-time secrets and is only revealed through its private share link. See src/lib/cardPrivate.ts.
  */
 import { site } from './site';
 
@@ -23,10 +26,6 @@ export interface CardProfile {
   bio?: string;
   /** Shown in the monogram, e.g. "JP". */
   initials: string;
-  /** E.164 format, e.g. +18322736907. */
-  phone?: string;
-  /** How the number is shown on the page. */
-  phoneDisplay?: string;
   email?: string;
   website?: string;
   org?: string;
@@ -44,8 +43,6 @@ export const cards: CardProfile[] = [
     title: 'Software Developer | Business Systems',
     bio: site.tagline,
     initials: 'JP',
-    phone: '+18322736907',
-    phoneDisplay: '+1 832-273-6907',
     email: site.email,
     website: site.url,
     links: [

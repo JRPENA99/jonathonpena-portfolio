@@ -22,7 +22,7 @@ const linkIcon: Record<string, string> = {
 };
 ---
 
-<article class="bcard" style={p.accent ? `--accent:${p.accent}` : undefined} aria-labelledby="bc-name">
+<article class="bcard" data-card={p.slug} style={p.accent ? `--accent:${p.accent}` : undefined} aria-labelledby="bc-name">
   <header class="id">
     <div class="mono-mark" aria-hidden="true">{p.initials}</div>
     <h1 id="bc-name">{name}</h1>
@@ -34,18 +34,17 @@ const linkIcon: Record<string, string> = {
     {p.bio && <p class="bio">{p.bio}</p>}
   </header>
 
-  <a class="btn btn-primary save" href={vcardPath(p)} download={`${p.slug}.vcf`} type="text/vcard">
+  <a class="btn btn-primary save" data-save href={vcardPath(p)} download={`${p.slug}.vcf`} type="text/vcard">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={icons.save} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
     Save contact
   </a>
 
   <nav class="actions" aria-label="Contact">
-    {p.phone && (
-      <a class="act" href={`tel:${p.phone}`}>
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d={icons.phone} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
-        <span class="al">Call</span><span class="av mono">{p.phoneDisplay ?? p.phone}</span>
-      </a>
-    )}
+    {/* Filled in only from the private share link; the public page never contains a number. */}
+    <a class="act" data-call hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d={icons.phone} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+      <span class="al">Call</span><span class="av mono" data-call-number></span>
+    </a>
     {p.email && (
       <a class="act" href={`mailto:${p.email}`}>
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d={icons.mail} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
@@ -79,13 +78,44 @@ const linkIcon: Record<string, string> = {
   )}
 
   <figure class="qr">
-    <div class="qr-tile" role="img" aria-label={`QR code linking to ${url}`} set:html={qr} />
+    <div class="qr-tile" data-qr role="img" aria-label={`QR code linking to ${url}`} set:html={qr} />
     <figcaption>
       <span class="eyebrow">Scan to share</span>
       <span class="mono qr-url" set:html={host(url).replace('/', '<wbr>/')} />
     </figcaption>
   </figure>
 </article>
+
+<script>
+  // Private share link: /card/#k=<key>. The key never leaves the browser except as a derived file id.
+  // Must match privateId() in src/lib/cardPrivate.ts: sha256("<slug>:<key>"), first 32 hex chars.
+  async function unlock(card: HTMLElement) {
+    const key = new URLSearchParams(location.hash.slice(1)).get('k');
+    if (!key || !crypto?.subtle) return;
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${card.dataset.card}:${key}`));
+    const id = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+    const res = await fetch(`/card/p/${id}.json`, { cache: 'no-store' }).catch(() => null);
+    if (!res?.ok) return;
+    const data: { phone: string; phoneDisplay: string; vcf: string; qr: string } = await res.json();
+
+    const call = card.querySelector<HTMLAnchorElement>('[data-call]');
+    if (call) {
+      call.href = `tel:${data.phone}`;
+      call.querySelector('[data-call-number]')!.textContent = data.phoneDisplay;
+      call.hidden = false;
+    }
+    card.querySelector<HTMLAnchorElement>('[data-save]')?.setAttribute('href', data.vcf);
+    const qr = card.querySelector<HTMLElement>('[data-qr]');
+    if (qr) {
+      qr.innerHTML = data.qr;
+      qr.setAttribute('aria-label', 'QR code for this card, including the phone number');
+    }
+  }
+  const run = () => document.querySelectorAll<HTMLElement>('[data-card]').forEach((c) => void unlock(c));
+  run();
+  // Opening the private link in a tab that already shows the card only changes the hash.
+  addEventListener('hashchange', run);
+</script>
 
 <style>
   .bcard {

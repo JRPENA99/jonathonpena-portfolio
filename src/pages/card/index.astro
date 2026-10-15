@@ -1,0 +1,8 @@
+---
+import CardPage from '../../components/card/CardPage.astro';
+import { cards, defaultCardSlug } from '../../data/cards';
+
+const profile = cards.find((c) => c.slug === defaultCardSlug)!;
+---
+
+<CardPage profile={profile} />

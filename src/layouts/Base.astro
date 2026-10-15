@@ -15,10 +15,16 @@ interface Props {
   /** Extra JSON-LD objects for this page. */
   schema?: Record<string, unknown>[];
   publishedTime?: Date;
+  /** Hide the site header and footer (used by /card). Off by default. */
+  bare?: boolean;
+  /** Ask search engines not to index this page. Off by default. */
+  noindex?: boolean;
+  /** Use `title` as the full page title, without the " · site name" suffix. Off by default. */
+  exactTitle?: boolean;
 }
 
-const { title, description = site.description, ogType = 'website', schema = [], publishedTime } = Astro.props;
-const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Software, systems & useful things`;
+const { title, description = site.description, ogType = 'website', schema = [], publishedTime, bare = false, noindex = false, exactTitle = false } = Astro.props;
+const fullTitle = title && exactTitle ? title : title ? `${title} · ${site.name}` : `${site.name} · Software, systems & useful things`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL('/og.png', Astro.site).href;
 
@@ -44,6 +50,7 @@ const jsonLd = [person, ...schema];
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <meta name="author" content={site.name} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title="Jonathon Pena: Build Log & Writing" href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -80,11 +87,11 @@ const jsonLd = [person, ...schema];
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <Header />
+    {!bare && <Header />}
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
+    {!bare && <Footer />}
     <script>
       import '../scripts/site';
     </script>

@@ -1,0 +1,32 @@
+---
+/** Full page wrapper for a card: bare layout (no site header/footer), noindex. */
+import Base from '../../layouts/Base.astro';
+import BusinessCard from './BusinessCard.astro';
+import type { CardProfile } from '../../data/cards';
+import { fullName } from '../../data/cards';
+import { site } from '../../data/site';
+
+interface Props { profile: CardProfile }
+const { profile } = Astro.props;
+const name = fullName(profile);
+---
+
+<Base title={`${name} · Digital card`} exactTitle description={`${name}, ${profile.title}. ${profile.bio ?? ''}`.trim()} ogType="profile" bare noindex>
+  <div class="card-page">
+    <BusinessCard profile={profile} />
+    <p class="foot"><a href="/">{site.url.replace('https://', '')}</a></p>
+  </div>
+</Base>
+
+<style>
+  .card-page {
+    min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 18px;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+    background:
+      radial-gradient(600px 360px at 50% -40px, var(--accent-soft), transparent 70%),
+      var(--bg);
+  }
+  .foot { font: 0.75rem var(--font-mono); color: var(--text-3); }
+  .foot a { color: inherit; text-decoration: none; }
+  .foot a:hover { color: var(--text); }
+</style>

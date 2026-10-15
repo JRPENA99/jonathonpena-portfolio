@@ -1,0 +1,13 @@
+---
+/** Additional profiles at /card/<slug>/. The default profile lives at /card/ instead. */
+import CardPage from '../../components/card/CardPage.astro';
+import { cards, defaultCardSlug } from '../../data/cards';
+
+export function getStaticPaths() {
+  return cards.filter((c) => c.slug !== defaultCardSlug).map((profile) => ({ params: { slug: profile.slug }, props: { profile } }));
+}
+
+const { profile } = Astro.props;
+---
+
+<CardPage profile={profile} />

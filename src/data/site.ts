@@ -71,7 +71,7 @@ export const repos = [
   },
   {
     name: 'woodfox-roasters',
-    description: 'Website and shop (in preview) for Woodfox Coffee, a young specialty coffee company.',
+    description: 'Website and NFC cards for Woodfox Coffee (woodfoxcoffee.com), a young specialty coffee company.',
     language: 'Astro',
     updated: '2026-10',
   },

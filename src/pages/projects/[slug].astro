@@ -166,6 +166,9 @@ const schema = [{
   .gallery { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 16px; align-items: start; }
   .gallery .shot:not(.narrow) { grid-column: 1; }
   .gallery .narrow { grid-column: 2; grid-row: 1 / span 2; }
+  /* All-narrow galleries (phone screenshots) sit side by side instead. */
+  .gallery:not(:has(.shot:not(.narrow))) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .gallery:not(:has(.shot:not(.narrow))) .narrow { grid-column: auto; grid-row: auto; width: auto; }
   .shot { margin: 0; }
   .shot :global(img) { width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); }
   .shot figcaption { font-size: 0.82rem; color: var(--text-3); margin-top: 8px; }
